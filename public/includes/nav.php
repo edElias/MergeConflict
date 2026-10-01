@@ -22,8 +22,9 @@ $navItems = [
     <i class="bi bi-building-check me-1"></i>CivicFunds
   </a>
   <div class="dropdown">
-    <button class="btn btn-outline-light dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-      <i class="bi bi-person-circle me-1"></i><?= htmlspecialchars($displayName) ?>
+    <button class="btn btn-outline-light dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false"
+            aria-label="User menu">
+      <i class="bi bi-person-circle"></i><span class="d-none d-sm-inline ms-1"><?= htmlspecialchars($displayName) ?></span>
     </button>
     <ul class="dropdown-menu dropdown-menu-end">
       <li><a class="dropdown-item" href="#"><i class="bi bi-gear me-2"></i>Profile &amp; settings</a></li>

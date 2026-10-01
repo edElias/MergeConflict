@@ -22,11 +22,21 @@
 
 @media (min-width: 992px) {
   .app-sidebar {
-    width: 250px;
+    width: 260px;
     flex-shrink: 0;
   }
 }
 
 .placeholder-value {
   color: var(--bs-secondary-color);
+}
+
+.chart-placeholder {
+  min-height: 160px;
+  background: var(--bs-secondary-bg);
+}
+
+.app-sidebar .nav-link {
+  font-size: 0.875rem;
+  white-space: nowrap;
 }
