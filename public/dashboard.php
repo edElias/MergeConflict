@@ -1,4 +1,6 @@
 <?php
+require __DIR__ . '/includes/auth.php';
+$displayName = $_SESSION['display_name'];
 // MER-7: Authenticated dashboard shell.
 // MER-9: add the session check here (redirect to login.php?expired=1 when not signed in)
 // and set $displayName from the session.
