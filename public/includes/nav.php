@@ -56,3 +56,4 @@ $navItems = [
     </div>
   </aside>
   <main class="app-main p-4">
+<script src="assets/js/idle.js"></script>
