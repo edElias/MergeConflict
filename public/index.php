@@ -1,4 +1,10 @@
 <?php
-// Entry point. MER-9: send signed-in users to dashboard.php instead.
-header('Location: login.php');
+// Entry point: signed-in users go to the dashboard, everyone else to login.
+session_start();
+
+if (empty($_SESSION['user_id'])) {
+    header('Location: login.php');
+} else {
+    header('Location: dashboard.php');
+}
 exit;
