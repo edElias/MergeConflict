@@ -31,6 +31,17 @@
   color: var(--bs-secondary-color);
 }
 
+.cash-total-card {
+  border-top: 4px solid var(--bs-primary);
+}
+
+.legend-swatch {
+  display: inline-block;
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 0.2rem;
+}
+
 .chart-placeholder {
   min-height: 160px;
   background: var(--bs-secondary-bg);

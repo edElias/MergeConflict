@@ -7,13 +7,17 @@ $displayName = $_SESSION['display_name'];
 $pageTitle = 'Dashboard';
 $activePage = 'dashboard';
 
-// Placeholder layout only — real figures come from SQLite in later sprints.
-$summaryCards = [
-    ['Cash on hand', 'bi-cash-stack'],
-    ['Committed', 'bi-journal-check'],
-    ['Available', 'bi-wallet2'],
-    ['Active alerts', 'bi-bell'],
+// MER-24: Sprint 1 mock figures for the cash summary.
+// MER-25 replaces this with values queried from SQLite (same keys).
+$cashSummary = [
+    'total_cash'          => 4250000.00,
+    'restricted_cash'     => 1600000.00,
+    'unrestricted_cash'   => 2650000.00,
+    'committed_funds'     => 1875000.00,
+    'uncommitted_balance' => 2375000.00,
 ];
+
+// Placeholder layout only — real figures come from SQLite in later sprints.
 $funds = ['General Fund', 'Fund 2', 'Fund 3', 'Fund 4'];
 
 require __DIR__ . '/includes/header.php';
@@ -24,21 +28,7 @@ require __DIR__ . '/includes/nav.php';
   <span class="badge text-bg-secondary">Mock data</span>
 </div>
 
-<div class="row g-3 mb-4">
-  <?php foreach ($summaryCards as [$label, $icon]): ?>
-    <div class="col-12 col-sm-6 col-xl-3">
-      <div class="card h-100">
-        <div class="card-body">
-          <div class="d-flex justify-content-between align-items-start">
-            <span class="text-body-secondary small"><?= htmlspecialchars($label) ?></span>
-            <i class="bi <?= $icon ?> text-primary fs-5"></i>
-          </div>
-          <div class="fs-3 fw-semibold mt-2">$ <span class="placeholder-value">—</span></div>
-        </div>
-      </div>
-    </div>
-  <?php endforeach; ?>
-</div>
+<?php require __DIR__ . '/includes/cash_summary.php'; ?>
 
 <div class="row g-3">
   <div class="col-12 col-xl-8">
