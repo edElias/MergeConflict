@@ -38,7 +38,6 @@ require __DIR__ . '/includes/nav.php';
 ?>
 <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
   <h1 class="h3 mb-0">Organization dashboard</h1>
-  <span class="badge text-bg-secondary">Mock data</span>
 </div>
 
 <?php require __DIR__ . '/includes/cash_summary.php'; ?>
