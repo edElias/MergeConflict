@@ -9,13 +9,26 @@ $activePage = 'dashboard';
 
 // MER-24: Sprint 1 mock figures for the cash summary.
 // MER-25 replaces this with values queried from SQLite (same keys).
-$cashSummary = [
-    'total_cash'          => 4250000.00,
-    'restricted_cash'     => 1600000.00,
-    'unrestricted_cash'   => 2650000.00,
-    'committed_funds'     => 1875000.00,
-    'uncommitted_balance' => 2375000.00,
-];
+
+
+//$cashSummary = [
+//    'total_cash'          => 4250000.00,
+//    'restricted_cash'     => 1600000.00,
+//    'unrestricted_cash'   => 2650000.00,
+//    'committed_funds'     => 1875000.00,
+//    'uncommitted_balance' => 2375000.00,
+//];
+
+
+ // MER-25: Load the DASH-01 cash summary from SQLite.
+ require_once __DIR__ . '/includes/db.php';
+ require_once __DIR__ . '/includes/cash_summary_data.php';
+
+ $cashSummary = getCashSummary($pdo);
+
+
+
+
 
 // Placeholder layout only — real figures come from SQLite in later sprints.
 $funds = ['General Fund', 'Fund 2', 'Fund 3', 'Fund 4'];
