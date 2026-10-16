@@ -31,9 +31,59 @@
   color: var(--bs-secondary-color);
 }
 
-.cash-total-card {
-  border-top: 4px solid var(--bs-primary);
+/* Cash summary donuts: orange = set aside (restricted/committed), blue = free to use. */
+:root {
+  --cash-set-aside: #eb6834;
+  --cash-free: #2a78d6;
 }
+
+.cash-donut {
+  position: relative;
+  width: 100%;
+  max-width: 180px;
+}
+
+.cash-donut svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.cash-donut-track,
+.cash-donut-segment {
+  fill: none;
+  stroke-width: 5;
+}
+
+.cash-donut-track {
+  stroke: var(--bs-secondary-bg);
+}
+
+.cash-donut-segment {
+  cursor: default;
+  transition: stroke-width 0.15s ease;
+}
+
+.cash-donut-segment:hover {
+  stroke-width: 6;
+}
+
+.cash-donut-segment.cash-set-aside { stroke: var(--cash-set-aside); }
+.cash-donut-segment.cash-free { stroke: var(--cash-free); }
+
+.cash-donut-center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  line-height: 1.2;
+  pointer-events: none;
+}
+
+.legend-swatch.cash-set-aside { background: var(--cash-set-aside); }
+.legend-swatch.cash-free { background: var(--cash-free); }
 
 .legend-swatch {
   display: inline-block;
