@@ -16,6 +16,8 @@ if (isset($_GET['error'])) {
     $message = ['success', 'bi-check-circle', 'You have been logged out.'];
 } elseif (isset($_GET['expired'])) {
     $message = ['warning', 'bi-clock-history', 'Please sign in to continue.'];
+} elseif (isset($_GET['reset'])) {
+    $message = ['success', 'bi-check-circle', 'Password updated. Please sign in.'];
 }
 
 require __DIR__ . '/includes/header.php';
@@ -50,6 +52,7 @@ require __DIR__ . '/includes/header.php';
         </div>
         <button type="submit" class="btn btn-primary w-100">Sign in</button>
       </form>
+      <p class="text-center mt-3 mb-0"><a href="forgot.php">Forgot password?</a></p>
     </div>
   </div>
 </main>
