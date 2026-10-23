@@ -12,7 +12,7 @@ $username = trim($_POST['username'] ?? '');
 $password = $_POST['password'] ?? '';
 
 $stmt = $pdo->prepare(
-    'SELECT id, password_hash, display_name FROM users WHERE username = ?'
+    'SELECT id, password_hash, display_name, avatar_file FROM users WHERE username = ?'
 );
 $stmt->execute([$username]);
 $user = $stmt->fetch();
@@ -22,6 +22,9 @@ if ($user && password_verify($password, $user['password_hash'])) {
     $_SESSION['user_id']      = $user['id'];
     $_SESSION['display_name'] = $user['display_name'];
     $_SESSION['last_activity'] = time();
+    require __DIR__ . '/includes/account.php';
+    sync_avatar_session($user['avatar_file']); // MER-26: show the profile photo in the top bar
+
     header('Location: dashboard.php');
     exit;
 }

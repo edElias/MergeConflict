@@ -24,6 +24,12 @@
   .app-sidebar {
     width: 260px;
     flex-shrink: 0;
+    /* Stay in place under the sticky top bar while the page scrolls. */
+    position: sticky;
+    top: 56px;
+    align-self: flex-start;
+    height: calc(100vh - 56px);
+    overflow-y: auto;
   }
 }
 
@@ -100,4 +106,48 @@
 .app-sidebar .nav-link {
   font-size: 0.875rem;
   white-space: nowrap;
+}
+
+/* MER-29: Funds page */
+.fund-search {
+  max-width: 280px;
+}
+
+.fund-chevron {
+  width: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .fund-num {
+    width: 9.5rem;
+  }
+}
+
+/* MER-26: Profile & settings */
+.profile-photo {
+  width: 88px;
+  height: 88px;
+  flex-shrink: 0;
+}
+
+.profile-photo-placeholder {
+  font-size: 88px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.nav-avatar {
+  width: 1.25rem;
+  height: 1.25rem;
+  vertical-align: -0.2em;
+}
+
+.code-inputs .form-control {
+  height: 3rem;
+  padding: 0;
+}
+
+.code-inputs .form-control.is-invalid {
+  background-image: none;
+  padding: 0;
 }

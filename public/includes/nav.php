@@ -6,7 +6,7 @@ $displayName = $displayName ?? 'Signed-in user';
 
 $navItems = [
     'dashboard'    => ['Dashboard', 'bi-speedometer2', 'dashboard.php'],
-    'funds'        => ['Funds', 'bi-bank', '#'],
+    'funds'        => ['Funds', 'bi-bank', 'funds.php'],
     'transactions' => ['Transactions', 'bi-arrow-left-right', '#'],
     'planning'     => ['Inflows & Commitments', 'bi-calendar-check', '#'],
     'alerts'       => ['Alerts', 'bi-bell', '#'],
@@ -24,10 +24,14 @@ $navItems = [
   <div class="dropdown">
     <button class="btn btn-outline-light dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false"
             aria-label="User menu">
-      <i class="bi bi-person-circle"></i><span class="d-none d-sm-inline ms-1"><?= htmlspecialchars($displayName) ?></span>
+      <?php if (!empty($_SESSION['avatar_version'])): ?>
+        <img src="avatar.php?v=<?= (int) $_SESSION['avatar_version'] ?>" alt="" class="rounded-circle object-fit-cover nav-avatar">
+      <?php else: ?>
+        <i class="bi bi-person-circle"></i>
+      <?php endif; ?><span class="d-none d-sm-inline ms-1"><?= htmlspecialchars($displayName) ?></span>
     </button>
     <ul class="dropdown-menu dropdown-menu-end">
-      <li><a class="dropdown-item" href="#"><i class="bi bi-gear me-2"></i>Profile &amp; settings</a></li>
+      <li><a class="dropdown-item <?= $activePage === 'profile' ? 'active' : '' ?>" href="profile.php"><i class="bi bi-gear me-2"></i>Profile &amp; settings</a></li>
       <li><hr class="dropdown-divider"></li>
       <!-- MER-9: logout.php ends the session and redirects to login.php?logged_out=1 -->
       <li><a class="dropdown-item" href="logout.php"><i class="bi bi-box-arrow-right me-2"></i>Log out</a></li>
