@@ -17,12 +17,15 @@ try {
     $pdo = new PDO('sqlite:' . $dbPath);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     $columns = array_column($pdo->query('PRAGMA table_info(users)')->fetchAll(), 'name');
+    $tables = $pdo->query("SELECT name FROM sqlite_master WHERE type = 'table'")->fetchAll(PDO::FETCH_COLUMN);
     $admin = $pdo->query("SELECT first_name, last_name, phone, role FROM users WHERE username = 'admin'")
         ->fetch(PDO::FETCH_ASSOC);
 
     $checks = [
         'Users table has profile columns'
             => !array_diff(['first_name', 'last_name', 'phone', 'role', 'avatar_file'], $columns),
+        'Password reset attempts are tracked per account'
+            => in_array('password_resets', $tables, true),
         'Mock admin has a profile'
             => $admin['first_name'] !== '' && format_phone($admin['phone']) === $admin['phone'] && $admin['role'] !== '',
         'Phone: digits are formatted'

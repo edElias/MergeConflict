@@ -3,6 +3,7 @@ require __DIR__ . '/includes/auth.php';
 // MER-26: Profile & settings, laid out per the Figma "Profile & settings (MER-26)" frames.
 require_once __DIR__ . '/includes/db.php';
 require_once __DIR__ . '/includes/account.php';
+require_once __DIR__ . '/includes/form.php';
 
 $userId = (int) $_SESSION['user_id'];
 
@@ -89,16 +90,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         if (!$errors) {
-            $file = $userId . ($info[2] === IMAGETYPE_PNG ? '.png' : '.jpg');
+            // A new random name per upload gives the photo a new URL, so browsers don't show a cached old one.
+            $file = $userId . '-' . bin2hex(random_bytes(4)) . ($info[2] === IMAGETYPE_PNG ? '.png' : '.jpg');
             if (!is_dir(AVATAR_DIR)) {
                 mkdir(AVATAR_DIR, 0775, true);
             }
-            if ($user['avatar_file'] && $user['avatar_file'] !== $file) {
-                @unlink(AVATAR_DIR . '/' . basename($user['avatar_file']));
-            }
             if (move_uploaded_file($upload['tmp_name'], AVATAR_DIR . '/' . $file)) {
                 $pdo->prepare('UPDATE users SET avatar_file = ? WHERE id = ?')->execute([$file, $userId]);
-                $_SESSION['avatar_version'] = filemtime(AVATAR_DIR . '/' . $file);
+                if ($user['avatar_file']) {
+                    @unlink(AVATAR_DIR . '/' . basename($user['avatar_file']));
+                }
+                sync_avatar_session($file);
                 header('Location: profile.php?saved=1');
                 exit;
             }
@@ -119,33 +121,8 @@ $displayName = $_SESSION['display_name'];
 $pageTitle = 'Profile & settings';
 $activePage = 'profile';
 $token = csrf_token();
-sync_avatar_session(load_user($pdo, $userId)['avatar_file']);
+sync_avatar_session($user['avatar_file']);
 $hasPhoto = !empty($_SESSION['avatar_version']);
-
-// Renders a labeled input with an optional hint and inline error.
-function field(string $name, string $label, string $value, array $errors, array $opts = []): void
-{
-    $id = 'f-' . $name;
-    $error = $errors[$name] ?? null;
-    $type = $opts['type'] ?? 'text';
-    $readonly = !empty($opts['readonly']);
-    $describedBy = $error ? "$id-error" : (isset($opts['hint']) ? "$id-hint" : null);
-    ?>
-    <div class="<?= $opts['class'] ?? 'mb-3' ?>">
-      <label for="<?= $id ?>" class="form-label fw-semibold small"><?= htmlspecialchars($label) ?></label>
-      <input type="<?= $type ?>" id="<?= $id ?>" <?= $readonly ? 'readonly' : 'name="' . $name . '"' ?>
-             class="form-control <?= $readonly ? 'bg-body-secondary text-body-secondary' : '' ?> <?= $error ? 'is-invalid' : '' ?>"
-             value="<?= htmlspecialchars($value) ?>"
-             <?= isset($opts['autocomplete']) ? 'autocomplete="' . $opts['autocomplete'] . '"' : '' ?>
-             <?= $describedBy ? 'aria-describedby="' . $describedBy . '"' : '' ?>>
-      <?php if ($error): ?>
-        <div id="<?= $id ?>-error" class="invalid-feedback"><i class="bi bi-exclamation-triangle me-1"></i><?= htmlspecialchars($error) ?></div>
-      <?php elseif (isset($opts['hint'])): ?>
-        <div id="<?= $id ?>-hint" class="form-text"><?= htmlspecialchars($opts['hint']) ?></div>
-      <?php endif; ?>
-    </div>
-    <?php
-}
 
 require __DIR__ . '/includes/header.php';
 require __DIR__ . '/includes/nav.php';
@@ -171,7 +148,7 @@ require __DIR__ . '/includes/nav.php';
       <div class="card-body">
         <div class="d-flex align-items-center gap-3 mb-4">
           <?php if ($hasPhoto): ?>
-            <img src="avatar.php?v=<?= (int) $_SESSION['avatar_version'] ?>" alt="Your profile photo"
+            <img src="avatar.php?v=<?= urlencode($_SESSION['avatar_version']) ?>" alt="Your profile photo"
                  class="rounded-circle object-fit-cover profile-photo">
           <?php else: ?>
             <i class="bi bi-person-circle text-body-secondary profile-photo-placeholder" role="img" aria-label="No profile photo"></i>
@@ -209,17 +186,17 @@ require __DIR__ . '/includes/nav.php';
           <input type="hidden" name="action" value="profile">
           <div class="row g-3 mb-3">
             <div class="col-sm-6">
-              <?php field('first_name', 'First name', $form['first_name'], $errors, ['class' => '', 'autocomplete' => 'given-name']); ?>
+              <?php form_field('first_name', 'First name', $form['first_name'], $errors, ['class' => '', 'autocomplete' => 'given-name']); ?>
             </div>
             <div class="col-sm-6">
-              <?php field('last_name', 'Last name', $form['last_name'], $errors, ['class' => '', 'autocomplete' => 'family-name']); ?>
+              <?php form_field('last_name', 'Last name', $form['last_name'], $errors, ['class' => '', 'autocomplete' => 'family-name']); ?>
             </div>
           </div>
-          <?php field('phone', 'Phone number', $form['phone'], $errors,
+          <?php form_field('phone', 'Phone number', $form['phone'], $errors,
               ['type' => 'tel', 'autocomplete' => 'tel', 'hint' => 'Format: (555) 123-4567']); ?>
-          <?php field('username', 'Username', $user['username'], $errors,
+          <?php form_field('username', 'Username', $user['username'], $errors,
               ['readonly' => true, 'hint' => 'Used to sign in. Contact an administrator to change it.']); ?>
-          <?php field('role', 'Role', $user['role'], $errors, ['readonly' => true, 'class' => 'mb-4']); ?>
+          <?php form_field('role', 'Role', $user['role'], $errors, ['readonly' => true, 'class' => 'mb-4']); ?>
           <button type="submit" class="btn btn-primary w-100">Save changes</button>
         </form>
       </div>
@@ -234,11 +211,11 @@ require __DIR__ . '/includes/nav.php';
         <form action="profile.php" method="post" novalidate>
           <input type="hidden" name="csrf_token" value="<?= $token ?>">
           <input type="hidden" name="action" value="password">
-          <?php field('current_password', 'Current password', '', $errors,
+          <?php form_field('current_password', 'Current password', '', $errors,
               ['type' => 'password', 'autocomplete' => 'current-password']); ?>
-          <?php field('password', 'New password', '', $errors,
+          <?php form_field('password', 'New password', '', $errors,
               ['type' => 'password', 'autocomplete' => 'new-password', 'hint' => 'At least ' . PASSWORD_MIN_LENGTH . ' characters.']); ?>
-          <?php field('confirm', 'Confirm new password', '', $errors,
+          <?php form_field('confirm', 'Confirm new password', '', $errors,
               ['type' => 'password', 'autocomplete' => 'new-password', 'class' => 'mb-4']); ?>
           <button type="submit" class="btn btn-primary w-100">Update password</button>
         </form>

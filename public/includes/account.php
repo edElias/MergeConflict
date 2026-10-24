@@ -34,12 +34,13 @@ function format_phone(string $input): ?string
 }
 
 // Keeps $_SESSION['avatar_version'] in sync with the user's stored photo. The
-// version (file modified time) is added to avatar URLs so a new photo isn't cached.
+// version (the photo's file name, which is new on every upload) is added to avatar
+// URLs so a replaced photo is never served from the browser cache.
 function sync_avatar_session(?string $avatarFile): void
 {
     $path = $avatarFile ? AVATAR_DIR . '/' . basename($avatarFile) : null;
     if ($path && is_file($path)) {
-        $_SESSION['avatar_version'] = filemtime($path);
+        $_SESSION['avatar_version'] = pathinfo($path, PATHINFO_FILENAME);
     } else {
         unset($_SESSION['avatar_version']);
     }

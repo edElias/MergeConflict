@@ -9,3 +9,7 @@ $pdo = new PDO('sqlite:' . $dbPath, null, null, [
 
 // FUND-02
 $pdo->exec('PRAGMA foreign_keys = ON');
+
+// Add any newer columns/tables to databases created before them.
+require_once __DIR__ . '/schema.php';
+ensure_schema($pdo);

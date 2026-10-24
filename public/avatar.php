@@ -9,7 +9,7 @@ $stmt = $pdo->prepare('SELECT avatar_file FROM users WHERE id = ?');
 $stmt->execute([$_SESSION['user_id']]);
 $file = $stmt->fetchColumn();
 
-$path = is_string($file) && preg_match('/^\d+\.(jpg|png)$/', $file) ? AVATAR_DIR . '/' . $file : null;
+$path = is_string($file) && preg_match('/^\d+(-[0-9a-f]{8})?\.(jpg|png)$/', $file) ? AVATAR_DIR . '/' . $file : null;
 
 if ($path === null || !is_file($path)) {
     http_response_code(404);

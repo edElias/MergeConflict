@@ -13,7 +13,7 @@ $navItems = [
     'forecast'     => ['Forecast', 'bi-graph-up', '#'],
 ];
 ?>
-<nav class="navbar navbar-dark bg-primary sticky-top px-3">
+<nav class="navbar navbar-dark bg-primary sticky-top px-3 app-topbar">
   <button class="btn btn-outline-light d-lg-none me-2" type="button"
           data-bs-toggle="offcanvas" data-bs-target="#sidebar" aria-controls="sidebar" aria-label="Open navigation">
     <i class="bi bi-list"></i>
@@ -25,10 +25,10 @@ $navItems = [
     <button class="btn btn-outline-light dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false"
             aria-label="User menu">
       <?php if (!empty($_SESSION['avatar_version'])): ?>
-        <img src="avatar.php?v=<?= (int) $_SESSION['avatar_version'] ?>" alt="" class="rounded-circle object-fit-cover nav-avatar">
+        <img src="avatar.php?v=<?= urlencode($_SESSION['avatar_version']) ?>" alt="" class="rounded-circle object-fit-cover nav-avatar">
       <?php else: ?>
         <i class="bi bi-person-circle"></i>
-      <?php endif; ?><span class="d-none d-sm-inline ms-1"><?= htmlspecialchars($displayName) ?></span>
+      <?php endif; ?><span class="d-none d-sm-inline-block ms-1 text-truncate align-bottom app-topbar-name"><?= htmlspecialchars($displayName) ?></span>
     </button>
     <ul class="dropdown-menu dropdown-menu-end">
       <li><a class="dropdown-item <?= $activePage === 'profile' ? 'active' : '' ?>" href="profile.php"><i class="bi bi-gear me-2"></i>Profile &amp; settings</a></li>

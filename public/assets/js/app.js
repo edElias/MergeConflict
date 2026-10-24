@@ -63,10 +63,18 @@ document.querySelectorAll('[data-code-inputs]').forEach((group) => {
   };
 
   boxes.forEach((box, i) => {
-    box.addEventListener('input', () => {
-      const digits = box.value.replace(/\D/g, '');
+    box.addEventListener('input', (event) => {
+      // A single typed character replaces the box's digit; anything longer (autofill,
+      // a pasted or typed-at-once code) is spread across the boxes from here.
+      const typed = event.inputType === 'insertText' && event.data && event.data.length === 1;
+      const digits = (typed ? event.data : box.value).replace(/\D/g, '');
+      if (!digits) {
+        // Ignore non-digits but keep the digit that was already there.
+        box.value = box.value.replace(/\D/g, '').slice(0, 1);
+        return;
+      }
       box.value = '';
-      if (digits) fill(i, digits);
+      fill(i, digits);
     });
     box.addEventListener('keydown', (event) => {
       if (event.key === 'Backspace' && !box.value && i > 0) {

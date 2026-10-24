@@ -13,27 +13,6 @@ $stmt = $pdo->prepare(
 );
 $stmt->execute(['admin', password_hash('password123', PASSWORD_DEFAULT), 'Admin User']);
 
-// MER-26: Profile & settings fields. Added with ALTER TABLE so existing databases pick them up.
-$userColumns = array_column($pdo->query('PRAGMA table_info(users)')->fetchAll(), 'name');
-foreach ([
-    'first_name'  => "TEXT NOT NULL DEFAULT ''",
-    'last_name'   => "TEXT NOT NULL DEFAULT ''",
-    'phone'       => "TEXT NOT NULL DEFAULT ''",
-    'role'        => "TEXT NOT NULL DEFAULT 'Finance Director'",
-    'avatar_file' => 'TEXT',
-] as $column => $definition) {
-    if (!in_array($column, $userColumns, true)) {
-        $pdo->exec("ALTER TABLE users ADD COLUMN $column $definition");
-    }
-}
-
-// Fill in the mock admin's profile once; later edits from the profile page are kept.
-$pdo->exec("UPDATE users
-    SET first_name = 'Admin', last_name = 'User', phone = '(555) 010-0000'
-    WHERE username = 'admin' AND first_name = ''");
-
-
-
  // MER-25: Fund balances for DASH-01.
  $pdo->exec('CREATE TABLE IF NOT EXISTS funds (
      id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -87,17 +66,14 @@ if (!$hasActiveColumn) {
      $stmt->execute($fund);
  }
 
-// MER-29: Fund type and active flag for DASH-02 fund summaries.
-// Added with ALTER TABLE so databases created before MER-29 pick them up too.
-$fundColumns = array_column($pdo->query('PRAGMA table_info(funds)')->fetchAll(), 'name');
-if (!in_array('fund_type', $fundColumns, true)) {
-    $pdo->exec("ALTER TABLE funds ADD COLUMN fund_type TEXT NOT NULL DEFAULT 'standard'
-        CHECK (fund_type IN ('standard', 'custom'))");
-}
-if (!in_array('is_active', $fundColumns, true)) {
-    $pdo->exec('ALTER TABLE funds ADD COLUMN is_active INTEGER NOT NULL DEFAULT 1
-        CHECK (is_active IN (0, 1))');
-}
+// Add the newer columns/tables (profile fields, fund type, projections, reset
+// attempts). Same code db.php runs automatically; see public/includes/schema.php.
+ensure_schema($pdo);
+
+// MER-26: Fill in the mock admin's profile once; later edits from the profile page are kept.
+$pdo->exec("UPDATE users
+    SET first_name = 'Admin', last_name = 'User', phone = '(555) 010-0000'
+    WHERE username = 'admin' AND first_name = ''");
 
 // Sample custom funds: one active (shown on the Funds page), one closed (hidden).
 $stmt = $pdo->prepare(
@@ -108,16 +84,8 @@ $stmt = $pdo->prepare(
 $stmt->execute(['Downtown Parks Grant', 250000, 250000, 120000, 'custom', 1]);
 $stmt->execute(['Riverfront Festival 2025', 0, 0, 0, 'custom', 0]);
 
-// MER-29: Projected 30-day balance per fund.
-// DUMMY VALUES until the ML forecast (MER-17) is ready; the forecast should
-// replace these rows and set source = 'ml'.
-$pdo->exec("CREATE TABLE IF NOT EXISTS fund_projections (
-    fund_id          INTEGER PRIMARY KEY REFERENCES funds(id) ON DELETE CASCADE,
-    projected_30_day REAL NOT NULL,
-    source           TEXT NOT NULL DEFAULT 'dummy',
-    updated_at       TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-)");
-
+// MER-29: Projected 30-day balances — DUMMY VALUES until the ML forecast (MER-17)
+// is ready; the forecast should replace these rows and set source = 'ml'.
 $projections = [
     'General Fund'          => 1420000,
     'Special Revenue Fund'  => 1050000,

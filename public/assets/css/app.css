@@ -9,9 +9,23 @@
   max-width: 420px;
 }
 
+:root {
+  /* Height of the top bar; the sidebar and page layout are sized from it. */
+  --app-topbar-height: 56px;
+}
+
+.app-topbar {
+  height: var(--app-topbar-height);
+  flex-wrap: nowrap;
+}
+
+.app-topbar-name {
+  max-width: 12rem;
+}
+
 .app-layout {
   display: flex;
-  min-height: calc(100vh - 56px);
+  min-height: calc(100vh - var(--app-topbar-height));
 }
 
 .app-main {
@@ -26,9 +40,9 @@
     flex-shrink: 0;
     /* Stay in place under the sticky top bar while the page scrolls. */
     position: sticky;
-    top: 56px;
+    top: var(--app-topbar-height);
     align-self: flex-start;
-    height: calc(100vh - 56px);
+    height: calc(100vh - var(--app-topbar-height));
     overflow-y: auto;
   }
 }

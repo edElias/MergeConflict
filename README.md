@@ -80,8 +80,8 @@ Projected 30-day balances are **dummy values** in the `fund_projections`
 table (`source = 'dummy'`) until the ML forecast is ready. The forecast
 should overwrite those rows and set `source = 'ml'`.
 
-Re-run `php scripts/init_db.php` after pulling; it adds the new columns
-and sample data to an existing database without touching other data.
+Re-run `php scripts/init_db.php` after pulling to add the sample custom
+funds and dummy projections; it doesn't touch other data.
 
 ```powershell
 php tests/fund_summary_test.php
@@ -94,12 +94,16 @@ php tests/fund_summary_test.php
   Photos are stored in `data/avatars/` (not in Git) and served by `avatar.php`
   to signed-in users only.
 - `forgot.php` → `reset.php`: reset with a 6-digit code that expires in
-  5 minutes. The code is still the AUTH-05 demo code `123456` until real SMS
+  5 minutes. Five wrong codes lock that account's reset for 15 minutes
+  (tracked in `password_resets`, so resending doesn't clear it). The code is still the AUTH-05 demo code `123456` until real SMS
   is added. Unknown usernames get the same screens, so the page doesn't reveal
   which accounts exist.
 - Passwords must be at least 8 characters.
 
-Re-run `php scripts/init_db.php` after pulling to add the new user columns.
+New columns and tables (profile fields, fund type, projections, reset
+attempts) are added automatically the first time the app opens an older
+database (`public/includes/schema.php`). Re-run `php scripts/init_db.php`
+to get the sample data.
 
 ```powershell
 php tests/account_test.php
