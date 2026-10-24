@@ -30,8 +30,10 @@ $activePage = 'dashboard';
 
 
 
-// Placeholder layout only — real figures come from SQLite in later sprints.
-$funds = ['General Fund', 'Fund 2', 'Fund 3', 'Fund 4'];
+// MER-29: Funds panel lists the same active funds as the Funds page; each opens its details.
+require_once __DIR__ . '/includes/fund_summary_data.php';
+require_once __DIR__ . '/includes/format.php';
+$funds = getFundSummaries($pdo);
 
 require __DIR__ . '/includes/header.php';
 require __DIR__ . '/includes/nav.php';
@@ -45,17 +47,22 @@ require __DIR__ . '/includes/nav.php';
 <div class="row g-3">
   <div class="col-12 col-xl-8">
     <div class="card h-100">
-      <div class="card-header bg-body">Funds</div>
+      <div class="card-header bg-body d-flex justify-content-between align-items-center">
+        <span>Funds</span>
+        <a href="funds.php" class="small">View all funds<i class="bi bi-chevron-right ms-1"></i></a>
+      </div>
       <div class="list-group list-group-flush">
         <?php foreach ($funds as $fund): ?>
-          <!-- Fund detail page comes in a later sprint. -->
-          <a href="#" class="list-group-item list-group-item-action d-flex align-items-center">
+          <a href="fund.php?id=<?= (int) $fund['id'] ?>" class="list-group-item list-group-item-action d-flex align-items-center">
             <i class="bi bi-bank me-2 text-body-secondary"></i>
-            <span class="me-auto"><?= htmlspecialchars($fund) ?></span>
-            <span class="placeholder-value">$ —</span>
+            <span class="me-auto"><?= htmlspecialchars($fund['name']) ?></span>
+            <span><?= htmlspecialchars(format_currency((float) $fund['current_balance'])) ?></span>
             <i class="bi bi-chevron-right ms-2 text-body-secondary small"></i>
           </a>
         <?php endforeach; ?>
+        <?php if (!$funds): ?>
+          <div class="list-group-item text-body-secondary">No active funds.</div>
+        <?php endif; ?>
       </div>
     </div>
   </div>

@@ -17,7 +17,7 @@ if (isset($_GET['error'])) {
 } elseif (isset($_GET['expired'])) {
     $message = ['warning', 'bi-clock-history', 'Please sign in to continue.'];
 } elseif (isset($_GET['reset'])) {
-    $message = ['success', 'bi-check-circle', 'Password updated. Please sign in.'];
+    $message = ['success', 'bi-check-circle', 'Password updated.'];
 }
 
 require __DIR__ . '/includes/header.php';

@@ -13,8 +13,6 @@ $stmt = $pdo->prepare(
 );
 $stmt->execute(['admin', password_hash('password123', PASSWORD_DEFAULT), 'Admin User']);
 
-
-
  // MER-25: Fund balances for DASH-01.
  $pdo->exec('CREATE TABLE IF NOT EXISTS funds (
      id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -67,6 +65,43 @@ if (!$hasActiveColumn) {
  foreach ($funds as $fund) {
      $stmt->execute($fund);
  }
+
+// Add the newer columns/tables (profile fields, fund type, projections, reset
+// attempts). Same code db.php runs automatically; see public/includes/schema.php.
+ensure_schema($pdo);
+
+// MER-26: Fill in the mock admin's profile once; later edits from the profile page are kept.
+$pdo->exec("UPDATE users
+    SET first_name = 'Admin', last_name = 'User', phone = '(555) 010-0000'
+    WHERE username = 'admin' AND first_name = ''");
+
+// Sample custom funds: one active (shown on the Funds page), one closed (hidden).
+$stmt = $pdo->prepare(
+    'INSERT OR IGNORE INTO funds
+     (name, total_cash, restricted_cash, committed_funds, fund_type, is_active)
+     VALUES (?, ?, ?, ?, ?, ?)'
+);
+$stmt->execute(['Downtown Parks Grant', 250000, 250000, 120000, 'custom', 1]);
+$stmt->execute(['Riverfront Festival 2025', 0, 0, 0, 'custom', 0]);
+
+// MER-29: Projected 30-day balances — DUMMY VALUES until the ML forecast (MER-17)
+// is ready; the forecast should replace these rows and set source = 'ml'.
+$projections = [
+    'General Fund'          => 1420000,
+    'Special Revenue Fund'  => 1050000,
+    'Capital Projects Fund' => 980000,
+    'Debt Service Fund'     => 140000,
+    'Downtown Parks Grant'  => 210000,
+];
+
+$stmt = $pdo->prepare(
+    "INSERT OR IGNORE INTO fund_projections (fund_id, projected_30_day, source)
+     SELECT id, ?, 'dummy' FROM funds WHERE name = ?"
+);
+
+foreach ($projections as $name => $projected) {
+    $stmt->execute([$projected, $name]);
+}
 
 
  
