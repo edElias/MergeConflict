@@ -27,6 +27,29 @@ $stmt->execute(['admin', password_hash('password123', PASSWORD_DEFAULT), 'Admin 
      CHECK (committed_funds >= 0 AND committed_funds <= total_cash)
  )');
 
+
+ // FUND-02: Add active status to existing funds.
+$columns = $pdo->query("PRAGMA table_info(funds)")
+               ->fetchAll(PDO::FETCH_ASSOC);
+
+$hasActiveColumn = false;
+
+foreach ($columns as $column) {
+    if ($column['name'] === 'is_active') {
+        $hasActiveColumn = true;
+        break;
+    }
+}
+
+if (!$hasActiveColumn) {
+    $pdo->exec(
+        'ALTER TABLE funds
+         ADD COLUMN is_active INTEGER NOT NULL DEFAULT 1
+         CHECK (is_active IN (0, 1))'
+    );
+}
+
+
  // Sprint 1 mock data, allocated across the four supported funds.
  $funds = [
      ['General Fund', 1500000, 200000, 600000],
@@ -46,7 +69,39 @@ $stmt->execute(['admin', password_hash('password123', PASSWORD_DEFAULT), 'Admin 
  }
 
 
+ 
+ // FUND-02: Transactions associated with funds.
+$pdo->exec('CREATE TABLE IF NOT EXISTS transactions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    fund_id INTEGER NOT NULL,
+    amount REAL NOT NULL,
+    description TEXT,
+    transaction_date TEXT NOT NULL,
+    FOREIGN KEY (fund_id) REFERENCES funds(id)
+)');
 
+
+
+ // FUND-02: Commitments associated with funds.
+$pdo->exec('CREATE TABLE IF NOT EXISTS commitments (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    fund_id INTEGER NOT NULL,
+    amount REAL NOT NULL CHECK (amount >= 0),
+    description TEXT,
+    commitment_date TEXT NOT NULL,
+    FOREIGN KEY (fund_id) REFERENCES funds(id)
+)');
+
+
+ // FUND-02: Expected inflows associated with funds.
+$pdo->exec('CREATE TABLE IF NOT EXISTS expected_inflows (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    fund_id INTEGER NOT NULL,
+    amount REAL NOT NULL CHECK (amount >= 0),
+    description TEXT,
+    expected_date TEXT NOT NULL,
+    FOREIGN KEY (fund_id) REFERENCES funds(id)
+)');
 
 
 

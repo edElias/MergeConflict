@@ -12,6 +12,7 @@ function getCashSummary(PDO $pdo): array
             COALESCE(SUM(committed_funds), 0) AS committed_funds,
             COALESCE(SUM(total_cash - committed_funds), 0) AS uncommitted_balance
         FROM funds
+        WHERE is_active=1
     ';
 
     $stmt = $pdo->query($sql);
