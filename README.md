@@ -87,6 +87,23 @@ funds and dummy projections; it doesn't touch other data.
 php tests/fund_summary_test.php
 ```
 
+## Edit fund information (FUND-04)
+
+The **Edit fund** button on `fund.php` opens `fund_edit.php?id=…`, where the
+fund name, type (standard/custom), restriction designation
+(unrestricted/restricted), and description can be changed. Balances and the
+fund's transactions, commitments, and expected inflows are never modified.
+Blank or duplicate names, unknown types or designations, and descriptions over
+500 characters are rejected with a message and nothing is saved.
+
+The `restriction` and `description` columns are added automatically (schema
+version 2 in `public/includes/schema.php`); existing funds start as
+unrestricted with no description.
+
+```powershell
+php tests/fund_edit_test.php
+```
+
 ## Profile & settings and password reset (MER-26)
 
 - `profile.php` (user menu → Profile & settings): profile photo, first/last
