@@ -61,6 +61,8 @@ function getFundDetails(PDO $pdo, int $id): ?array
             f.name,
             f.fund_type,
             f.is_active,
+            f.restriction,
+            f.description,
             f.total_cash      AS current_balance,
             f.restricted_cash,
             f.committed_funds AS committed,

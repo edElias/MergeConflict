@@ -4,7 +4,7 @@
 // database created before these changes keeps working without re-running init_db.
 // Bump SCHEMA_VERSION whenever a change is added below.
 
-const SCHEMA_VERSION = 1;
+const SCHEMA_VERSION = 2;
 
 function ensure_schema(PDO $pdo): void
 {
@@ -59,6 +59,12 @@ function ensure_schema(PDO $pdo): void
         source           TEXT NOT NULL DEFAULT 'dummy',
         updated_at       TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
     )");
+
+    // FUND-04: Editable fund details (restriction designation and description).
+    $addColumns('funds', [
+        'restriction' => "TEXT NOT NULL DEFAULT 'unrestricted' CHECK (restriction IN ('unrestricted', 'restricted'))",
+        'description' => "TEXT NOT NULL DEFAULT ''",
+    ]);
 
     $pdo->exec('PRAGMA user_version = ' . SCHEMA_VERSION);
 }

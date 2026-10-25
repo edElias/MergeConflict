@@ -48,10 +48,24 @@ require __DIR__ . '/includes/nav.php';
   <div class="d-flex flex-wrap align-items-center gap-2 mb-4">
     <h1 class="h3 mb-0"><?= htmlspecialchars($fund['name']) ?></h1>
     <span class="badge text-bg-light border"><?= htmlspecialchars(ucfirst($fund['fund_type'])) ?> fund</span>
+    <span class="badge text-bg-light border"><?= htmlspecialchars(ucfirst($fund['restriction'])) ?></span>
     <?php if (!(int) $fund['is_active']): ?>
       <span class="badge text-bg-secondary">Inactive</span>
     <?php endif; ?>
+    <a href="fund_edit.php?id=<?= (int) $fund['id'] ?>" class="btn btn-sm btn-outline-secondary ms-auto">
+      <i class="bi bi-pencil me-1"></i>Edit fund
+    </a>
   </div>
+
+  <?php if (isset($_GET['updated'])): ?>
+    <div class="alert alert-success d-flex align-items-center" role="status">
+      <i class="bi bi-check-circle me-2"></i><div>Fund information saved. Balances and records were not changed.</div>
+    </div>
+  <?php endif; ?>
+
+  <?php if ($fund['description'] !== ''): ?>
+    <p class="text-body-secondary mb-4"><?= nl2br(htmlspecialchars($fund['description'])) ?></p>
+  <?php endif; ?>
 
   <div class="row g-3 mb-4">
     <?php foreach ($values as [$label, $value, $note]): ?>
