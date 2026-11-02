@@ -17,6 +17,10 @@ if (!in_array($type, FUND_TYPES, true)) {
 $funds = getFundSummaries($pdo, $type);
 $counts = countActiveFundsByType($pdo);
 
+// FUND-05: Name the fund that was just archived, so the confirmation reads back.
+$archivedId = filter_input(INPUT_GET, 'archived', FILTER_VALIDATE_INT);
+$archivedFund = $archivedId ? getFundDetails($pdo, $archivedId) : null;
+
 $filters = [
     ''         => ['All', array_sum($counts)],
     'standard' => ['Standard', $counts['standard']],
@@ -28,6 +32,13 @@ require __DIR__ . '/includes/nav.php';
 ?>
 <h1 class="h3 mb-1">Funds</h1>
 <p class="text-body-secondary mb-4">Compare active funds. Select a fund to see its details.</p>
+
+<?php if ($archivedFund): ?>
+  <div class="alert alert-success d-flex align-items-center" role="status">
+    <i class="bi bi-check-circle me-2"></i>
+    <div><?= htmlspecialchars($archivedFund['name']) ?> was archived. Its transactions, commitments, and inflows were not deleted.</div>
+  </div>
+<?php endif; ?>
 
 <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
   <div class="input-group fund-search">
