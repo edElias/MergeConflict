@@ -124,6 +124,30 @@ require __DIR__ . '/includes/nav.php';
       </form>
     </div>
   </div>
+
+  <?php if (!(int) $fund['is_active']): ?>
+    <div class="card mt-4">
+      <div class="card-body">
+        <h2 class="h6 mb-1">Archive this fund</h2>
+        <p class="text-body-secondary small mb-0">
+          This fund is archived, so it no longer appears on the Funds page. Its records are still stored.
+        </p>
+      </div>
+    </div>
+  <?php else: ?>
+    <div class="card mt-4 border-danger-subtle">
+      <div class="card-body">
+        <h2 class="h6 mb-1">Archive this fund</h2>
+        <p class="text-body-secondary small mb-3">
+          Removes it from the Funds page and from dashboard totals. Transactions,
+          commitments, and expected inflows stay stored. Nothing is deleted.
+        </p>
+        <a href="fund_archive.php?id=<?= (int) $fund['id'] ?>" class="btn btn-sm btn-outline-danger">
+          <i class="bi bi-archive me-1"></i>Archive
+        </a>
+      </div>
+    </div>
+  <?php endif; ?>
   </div></div>
 <?php endif; ?>
 <?php
