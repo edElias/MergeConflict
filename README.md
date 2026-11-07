@@ -125,3 +125,24 @@ to get the sample data.
 ```powershell
 php tests/account_test.php
 ```
+
+## Archived funds (MER-36)
+
+- `funds_archived.php` lists archived funds; the Funds page links to it.
+- `fund.php` shows an archived fund read-only, with all of its preserved
+  records. `fund_edit.php` sends archived funds back to that page.
+- `fund_reactivate.php` confirms and returns a fund to active use. Only the
+  fund's active flag and archive date change.
+
+Re-run `php scripts/init_db.php` after pulling to add the sample archive date
+and history for Riverfront Festival 2025.
+
+```powershell
+php tests/fund_reactivate_test.php
+```
+
+## Page shells (MER-15, MER-16, MER-17, MER-18)
+
+`transactions.php`, `inflows.php`, `alerts.php`, and `forecast.php` follow the
+Figma layouts and are linked from the sidebar. They show no data yet, and their
+buttons and filters stay disabled until each page is connected.

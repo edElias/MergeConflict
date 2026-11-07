@@ -4,7 +4,7 @@
 // database created before these changes keeps working without re-running init_db.
 // Bump SCHEMA_VERSION whenever a change is added below.
 
-const SCHEMA_VERSION = 2;
+const SCHEMA_VERSION = 3;
 
 function ensure_schema(PDO $pdo): void
 {
@@ -65,6 +65,10 @@ function ensure_schema(PDO $pdo): void
         'restriction' => "TEXT NOT NULL DEFAULT 'unrestricted' CHECK (restriction IN ('unrestricted', 'restricted'))",
         'description' => "TEXT NOT NULL DEFAULT ''",
     ]);
+
+    // FUND-06: When a fund was archived. Empty for active funds, and for funds
+    // archived before this column existed.
+    $addColumns('funds', ['archived_at' => 'TEXT']);
 
     $pdo->exec('PRAGMA user_version = ' . SCHEMA_VERSION);
 }

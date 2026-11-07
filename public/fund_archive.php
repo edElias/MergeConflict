@@ -2,7 +2,7 @@
 require __DIR__ . '/includes/auth.php';
 // FUND-05: Confirm, then archive a fund. Archiving only clears the fund's active
 // flag, so its records stay stored and its detail page keeps working. Phase 1 has
-// no permanent deletion and no way back; the confirmation step is the safeguard.
+// no permanent deletion; FUND-06 (fund_reactivate.php) is the way back.
 require_once __DIR__ . '/includes/db.php';
 require_once __DIR__ . '/includes/account.php';
 require_once __DIR__ . '/includes/fund_summary_data.php';
