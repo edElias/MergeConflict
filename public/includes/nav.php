@@ -7,10 +7,10 @@ $displayName = $displayName ?? 'Signed-in user';
 $navItems = [
     'dashboard'    => ['Dashboard', 'bi-speedometer2', 'dashboard.php'],
     'funds'        => ['Funds', 'bi-bank', 'funds.php'],
-    'transactions' => ['Transactions', 'bi-arrow-left-right', '#'],
-    'planning'     => ['Inflows & Commitments', 'bi-calendar-check', '#'],
-    'alerts'       => ['Alerts', 'bi-bell', '#'],
-    'forecast'     => ['Forecast', 'bi-graph-up', '#'],
+    'transactions' => ['Transactions', 'bi-arrow-left-right', 'transactions.php'],
+    'planning'     => ['Inflows & Commitments', 'bi-calendar-check', 'inflows.php'],
+    'alerts'       => ['Alerts', 'bi-bell', 'alerts.php'],
+    'forecast'     => ['Forecast', 'bi-graph-up', 'forecast.php'],
 ];
 ?>
 <nav class="navbar navbar-dark bg-primary sticky-top px-3 app-topbar">

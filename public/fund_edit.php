@@ -12,6 +12,10 @@ $errors = [];
 
 if ($fund === null) {
     http_response_code(404);
+} elseif (!(int) $fund['is_active']) {
+    // FUND-06: Archived funds are read-only until they're reactivated.
+    header('Location: fund.php?id=' . $id);
+    exit;
 } else {
     $form = [
         'name'        => $fund['name'],
@@ -125,16 +129,6 @@ require __DIR__ . '/includes/nav.php';
     </div>
   </div>
 
-  <?php if (!(int) $fund['is_active']): ?>
-    <div class="card mt-4">
-      <div class="card-body">
-        <h2 class="h6 mb-1">Archive this fund</h2>
-        <p class="text-body-secondary small mb-0">
-          This fund is archived, so it no longer appears on the Funds page. Its records are still stored.
-        </p>
-      </div>
-    </div>
-  <?php else: ?>
     <div class="card mt-4 border-danger-subtle">
       <div class="card-body">
         <h2 class="h6 mb-1">Archive this fund</h2>
@@ -147,7 +141,6 @@ require __DIR__ . '/includes/nav.php';
         </a>
       </div>
     </div>
-  <?php endif; ?>
   </div></div>
 <?php endif; ?>
 <?php
