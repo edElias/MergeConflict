@@ -156,4 +156,76 @@ if ((int) $hasHistory->fetchColumn() === 0) {
     $stmt->execute([$fundId, -38400, 'Festival vendor payments', '2025-09-12']);
 }
 
+// MER-34: Sample records for the active funds, dated relative to today so the
+// "next 30 days" totals have something to show. Each fund's commitments add up to
+// its committed_funds, and a fund only gets samples if it has no records of that kind.
+$day = fn(int $offset) => date('Y-m-d', strtotime(($offset >= 0 ? '+' : '') . "$offset days"));
+
+$samples = [
+    'General Fund' => [
+        'transactions' => [
+            [-132400, 'Payroll – October', -6], [48250, 'Sales tax receipt', -10],
+            [-6180, 'Utility payment', -12], [3900, 'Permit fees', -18],
+            [-21760, 'Vendor payment', -25], [-2310, 'Office supplies', -40],
+        ],
+        'commitments' => [
+            [85000, 'Road salt contract', 12], [140000, 'Payroll – November', 21],
+            [35000, 'Fleet maintenance', 26], [340000, 'Building HVAC replacement', 70],
+        ],
+        'inflows' => [[120000, 'Property tax distribution', 14], [60000, 'State revenue sharing', 25]],
+    ],
+    'Special Revenue Fund' => [
+        'transactions' => [[31600, 'Motor fuel tax receipt', -17]],
+        'commitments' => [[150000, 'Street lighting upgrade', 18], [250000, 'Library programs', 90]],
+        'inflows' => [[120000, 'Motor fuel tax distribution', 9], [80000, 'Hotel tax receipts', 23]],
+    ],
+    'Capital Projects Fund' => [
+        'transactions' => [[-74300, 'Road resurfacing invoice', -14]],
+        'commitments' => [
+            [300000, 'Road resurfacing phase 2', 16], [45000, 'Bridge inspection', 28],
+            [230000, 'Fire station design', 75],
+        ],
+        'inflows' => [[75000, 'Bond proceeds draw', 20]],
+    ],
+    'Debt Service Fund' => [
+        'transactions' => [[-18750, 'Bond interest payment', -7]],
+        'commitments' => [[300000, 'Bond principal and interest', 19]],
+        'inflows' => [[40000, 'Debt service property tax levy', 20]],
+    ],
+    'Downtown Parks Grant' => [
+        'transactions' => [[25000, 'Park grant draw', -11]],
+        'commitments' => [[60000, 'Trail contractor', 15], [60000, 'Playground equipment', 45]],
+        'inflows' => [[20000, 'Park grant reimbursement', 27]],
+    ],
+];
+
+$tables = [
+    'transactions' => ['transactions', 'transaction_date'],
+    'commitments'  => ['commitments', 'commitment_date'],
+    'inflows'      => ['expected_inflows', 'expected_date'],
+];
+
+foreach ($samples as $name => $kinds) {
+    $find = $pdo->prepare('SELECT id FROM funds WHERE name = ?');
+    $find->execute([$name]);
+    $fundId = $find->fetchColumn();
+    if ($fundId === false) {
+        continue;
+    }
+
+    foreach ($kinds as $kind => $rows) {
+        [$table, $dateColumn] = $tables[$kind];
+        $existing = $pdo->prepare("SELECT COUNT(*) FROM $table WHERE fund_id = ?");
+        $existing->execute([$fundId]);
+        if ((int) $existing->fetchColumn() > 0) {
+            continue;
+        }
+
+        $insert = $pdo->prepare("INSERT INTO $table (fund_id, amount, description, $dateColumn) VALUES (?, ?, ?, ?)");
+        foreach ($rows as [$amount, $description, $offset]) {
+            $insert->execute([$fundId, $amount, $description, $day($offset)]);
+        }
+    }
+}
+
 echo "Done\n";

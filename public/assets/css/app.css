@@ -1,7 +1,23 @@
 /* CivicFunds app styles — layered on top of Bootstrap 5. */
 
+/* Sign-in, forgot-password, and reset-password pages: Kansas City skyline photo,
+   darkened slightly so the card stands out. The color shows while it loads. */
 .login-page {
-  background: var(--bs-tertiary-bg);
+  background:
+    linear-gradient(rgba(0, 0, 0, 0.25), rgba(0, 0, 0, 0.35)),
+    url("../img/kc-skyline.jpg") center / cover no-repeat fixed,
+    var(--bs-tertiary-bg);
+}
+
+.login-page .login-card {
+  box-shadow: 0 0.75rem 2rem rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Fixed backgrounds don't render well on phones; let the photo scroll there. */
+@media (max-width: 767.98px) {
+  .login-page {
+    background-attachment: scroll;
+  }
 }
 
 .login-card {
