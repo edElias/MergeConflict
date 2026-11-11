@@ -206,4 +206,20 @@ $pdo->exec('CREATE TABLE IF NOT EXISTS expected_inflows (
 
 
 
+// FUND-06: Sample history for the closed custom fund, so its preserved records can be reviewed.
+$pdo->exec("UPDATE funds SET archived_at = '2026-10-02'
+    WHERE name = 'Riverfront Festival 2025' AND is_active = 0 AND archived_at IS NULL");
+
+$fundId = $pdo->query("SELECT id FROM funds WHERE name = 'Riverfront Festival 2025'")->fetchColumn();
+$hasHistory = $pdo->prepare('SELECT COUNT(*) FROM transactions WHERE fund_id = ?');
+$hasHistory->execute([$fundId]);
+
+if ((int) $hasHistory->fetchColumn() === 0) {
+    $stmt = $pdo->prepare(
+        'INSERT INTO transactions (fund_id, amount, description, transaction_date) VALUES (?, ?, ?, ?)'
+    );
+    $stmt->execute([$fundId, 38400, 'Sponsorship receipts', '2025-08-29']);
+    $stmt->execute([$fundId, -38400, 'Festival vendor payments', '2025-09-12']);
+}
+
 echo "Done\n";

@@ -8,6 +8,13 @@ function format_currency(float $amount): string
     return $sign . '$' . number_format(abs($amount), 2);
 }
 
+// Formats a stored YYYY-MM-DD date as "Oct 2, 2026"; an em dash when there is no valid date.
+function format_date(?string $date): string
+{
+    $time = $date ? strtotime($date) : false;
+    return $time === false ? '—' : date('M j, Y', $time);
+}
+
 // Share of a total as a whole percentage (0 when the total is not positive).
 function percent_of(float $part, float $total): int
 {

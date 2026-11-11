@@ -87,6 +87,23 @@ funds and dummy projections; it doesn't touch other data.
 php tests/fund_summary_test.php
 ```
 
+## Edit fund information (FUND-04)
+
+The **Edit fund** button on `fund.php` opens `fund_edit.php?id=…`, where the
+fund name, type (standard/custom), restriction designation
+(unrestricted/restricted), and description can be changed. Balances and the
+fund's transactions, commitments, and expected inflows are never modified.
+Blank or duplicate names, unknown types or designations, and descriptions over
+500 characters are rejected with a message and nothing is saved.
+
+The `restriction` and `description` columns are added automatically (schema
+version 2 in `public/includes/schema.php`); existing funds start as
+unrestricted with no description.
+
+```powershell
+php tests/fund_edit_test.php
+```
+
 ## Profile & settings and password reset (MER-26)
 
 - `profile.php` (user menu → Profile & settings): profile photo, first/last
@@ -108,3 +125,24 @@ to get the sample data.
 ```powershell
 php tests/account_test.php
 ```
+
+## Archived funds (MER-36)
+
+- `funds_archived.php` lists archived funds; the Funds page links to it.
+- `fund.php` shows an archived fund read-only, with all of its preserved
+  records. `fund_edit.php` sends archived funds back to that page.
+- `fund_reactivate.php` confirms and returns a fund to active use. Only the
+  fund's active flag and archive date change.
+
+Re-run `php scripts/init_db.php` after pulling to add the sample archive date
+and history for Riverfront Festival 2025.
+
+```powershell
+php tests/fund_reactivate_test.php
+```
+
+## Page shells (MER-15, MER-16, MER-17, MER-18)
+
+`transactions.php`, `inflows.php`, `alerts.php`, and `forecast.php` follow the
+Figma layouts and are linked from the sidebar. They show no data yet, and their
+buttons and filters stay disabled until each page is connected.

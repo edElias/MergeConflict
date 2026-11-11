@@ -17,6 +17,14 @@ if (!in_array($type, FUND_TYPES, true)) {
 $funds = getFundSummaries($pdo, $type);
 $counts = countActiveFundsByType($pdo);
 
+// FUND-05: Name the fund that was just archived, so the confirmation reads back.
+$archivedId = filter_input(INPUT_GET, 'archived', FILTER_VALIDATE_INT);
+$archivedFund = $archivedId ? getFundDetails($pdo, $archivedId) : null;
+
+// FUND-06: Same for a fund that was just reactivated.
+$reactivatedId = filter_input(INPUT_GET, 'reactivated', FILTER_VALIDATE_INT);
+$reactivatedFund = $reactivatedId ? getFundDetails($pdo, $reactivatedId) : null;
+
 $filters = [
     ''         => ['All', array_sum($counts)],
     'standard' => ['Standard', $counts['standard']],
@@ -45,6 +53,23 @@ require __DIR__ . '/includes/nav.php';
 </div>
 
 
+<?php if ($archivedFund): ?>
+  <div class="alert alert-success d-flex align-items-center" role="status">
+    <i class="bi bi-check-circle me-2"></i>
+    <div>
+      <?= htmlspecialchars($archivedFund['name']) ?> was archived. Its transactions, commitments, and inflows were not deleted.
+      <a href="funds_archived.php" class="alert-link">View archived funds</a>
+    </div>
+  </div>
+<?php endif; ?>
+
+<?php if ($reactivatedFund): ?>
+  <div class="alert alert-success d-flex align-items-center" role="status">
+    <i class="bi bi-check-circle me-2"></i>
+    <div><?= htmlspecialchars($reactivatedFund['name']) ?> was reactivated. Its records were not changed.</div>
+  </div>
+<?php endif; ?>
+
 <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
   <div class="input-group fund-search">
     <span class="input-group-text bg-body"><i class="bi bi-search" aria-hidden="true"></i></span>
@@ -60,6 +85,7 @@ require __DIR__ . '/includes/nav.php';
       </a>
     <?php endforeach; ?>
   </nav>
+  <a href="funds_archived.php" class="small ms-auto">Archived funds<i class="bi bi-chevron-right ms-1"></i></a>
 </div>
 
 <div class="card">
