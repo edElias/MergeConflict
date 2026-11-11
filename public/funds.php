@@ -26,8 +26,24 @@ $filters = [
 require __DIR__ . '/includes/header.php';
 require __DIR__ . '/includes/nav.php';
 ?>
-<h1 class="h3 mb-1">Funds</h1>
-<p class="text-body-secondary mb-4">Compare active funds. Select a fund to see its details.</p>
+
+// FUND-03 Create Funds button
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+
+  <div>
+    <h1 class="h3 mb-1">Funds</h1>
+    <p class="text-body-secondary mb-0">
+      Compare active funds. Select a fund to see its details.
+    </p>
+  </div>
+
+  <a href="create_fund.php" class="btn btn-primary">
+    <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>
+    Create Fund
+  </a>
+
+</div>
+
 
 <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
   <div class="input-group fund-search">
