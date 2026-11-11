@@ -4,7 +4,7 @@
 // database created before these changes keeps working without re-running init_db.
 // Bump SCHEMA_VERSION whenever a change is added below.
 
-const SCHEMA_VERSION = 4;
+const SCHEMA_VERSION = 5;
 
 function ensure_schema(PDO $pdo): void
 {
@@ -74,6 +74,15 @@ function ensure_schema(PDO $pdo): void
     // FUND-06: When a fund was archived. Empty for active funds, and for funds
     // archived before this column existed.
     $addColumns('funds', ['archived_at' => 'TEXT']);
+
+    // PLAN-01: Commitment name and status. A database with no commitments table yet
+    // gets these columns when scripts/init_db.php creates the table.
+    if (in_array('commitments', $tables, true)) {
+        $addColumns('commitments', [
+            'name'   => "TEXT NOT NULL DEFAULT ''",
+            'status' => "TEXT NOT NULL DEFAULT 'Planned'",
+        ]);
+    }
 
     $pdo->exec('PRAGMA user_version = ' . SCHEMA_VERSION);
 }

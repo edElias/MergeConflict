@@ -120,14 +120,16 @@ $pdo->exec('CREATE TABLE IF NOT EXISTS transactions (
 
 
  // FUND-02: Commitments associated with funds.
-$pdo->exec('CREATE TABLE IF NOT EXISTS commitments (
+$pdo->exec("CREATE TABLE IF NOT EXISTS commitments (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     fund_id INTEGER NOT NULL,
     amount REAL NOT NULL CHECK (amount >= 0),
     description TEXT,
     commitment_date TEXT NOT NULL,
+    name TEXT NOT NULL DEFAULT '',
+    status TEXT NOT NULL DEFAULT 'Planned',
     FOREIGN KEY (fund_id) REFERENCES funds(id)
-)');
+)");
 
 
  // FUND-02: Expected inflows associated with funds.
