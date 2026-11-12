@@ -57,7 +57,7 @@ try {
         name,
         fund_type,
         fund_category,
-        restriction_designation,
+        restriction,
         description,
         total_cash,
         restricted_cash,
@@ -70,7 +70,7 @@ try {
         $name,
         'custom',
         $type,
-        $restriction,
+        strtolower($restriction),
         $description !== '' ? $description : null
     ]);
 
