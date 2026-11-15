@@ -66,6 +66,11 @@ function ensure_schema(PDO $pdo): void
         'description' => "TEXT NOT NULL DEFAULT ''",
     ]);
 
+    //FUND-03: Store the selected category for custom funds.
+    $addColumns('funds', [
+        'fund_category' => "TEXT NOT NULL DEFAULT 'Other'",
+        ]);
+
     // FUND-06: When a fund was archived. Empty for active funds, and for funds
     // archived before this column existed.
     $addColumns('funds', ['archived_at' => 'TEXT']);
