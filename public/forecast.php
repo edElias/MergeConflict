@@ -5,9 +5,25 @@ $displayName = $_SESSION['display_name'];
 $pageTitle = 'Forecast';
 $activePage = 'forecast';
 
+
+require_once __DIR__ . '/includes/db.php';
+require_once __DIR__ . '/includes/expected_inflow_data.php';
+
+// MER-38: Expected inflows within the 30-day forecast window.
+$startDate = date('Y-m-d');
+$endDate = date('Y-m-d', strtotime('+30 days'));
+
+$expectedInflowsTotal = getExpectedInflowsTotal(
+    $pdo,
+    $startDate,
+    $endDate
+);
+
+
+
 $summaries = [
     ['Current cash', 'Active funds'],
-    ['Known net change', 'Commitments and expected inflows'],
+    ['Expected inflows (30 days)', 'Known scheduled revenue; excludes commitments'],
     ['ML estimated net', 'Estimate, not a scheduled amount'],
     ['Projected balance', 'Known + ML estimate'],
 ];
@@ -30,7 +46,15 @@ require __DIR__ . '/includes/nav.php';
       <div class="card h-100">
         <div class="card-body">
           <div class="text-body-secondary small"><?= htmlspecialchars($label) ?></div>
-          <div class="fs-4 fw-semibold mt-1">—</div>
+          <div class="fs-4 fw-semibold mt-1">
+            <?php if ($label === 'Expected inflows (30 days)'): ?>
+              <span class="text-success">
+                +$<?= htmlspecialchars(number_format($expectedInflowsTotal, 2)) ?>
+              </span>
+            <?php else: ?>
+              —
+            <?php endif; ?>
+          </div>
           <div class="text-body-secondary small mt-1"><?= htmlspecialchars($note) ?></div>
         </div>
       </div>
