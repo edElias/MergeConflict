@@ -4,7 +4,7 @@
 // database created before these changes keeps working without re-running init_db.
 // Bump SCHEMA_VERSION whenever a change is added below.
 
-const SCHEMA_VERSION = 6;
+const SCHEMA_VERSION = 7;
 
 function ensure_schema(PDO $pdo): void
 {
@@ -91,7 +91,27 @@ function ensure_schema(PDO $pdo): void
         migrate_total_cash_to_opening_balance($pdo, in_array('transactions', $tables, true));
     }
 
+    if (in_array('transactions', $tables, true)) {
+        ensure_transaction_rules($pdo);
+    }
+
     $pdo->exec('PRAGMA user_version = ' . SCHEMA_VERSION);
+}
+
+// TRANS-07: Adds the transaction category, and makes posted transactions read-only:
+// the database refuses to change or remove one. scripts/init_db.php also calls this
+// right after it creates the transactions table.
+function ensure_transaction_rules(PDO $pdo): void
+{
+    $columns = array_column($pdo->query('PRAGMA table_info(transactions)')->fetchAll(PDO::FETCH_ASSOC), 'name');
+    if (!in_array('category', $columns, true)) {
+        $pdo->exec("ALTER TABLE transactions ADD COLUMN category TEXT NOT NULL DEFAULT ''");
+    }
+    foreach (['UPDATE', 'DELETE'] as $action) {
+        $pdo->exec('CREATE TRIGGER IF NOT EXISTS transactions_no_' . strtolower($action) . "
+            BEFORE $action ON transactions
+            BEGIN SELECT RAISE(ABORT, 'Posted transactions are read-only.'); END");
+    }
 }
 
 // FIN-01: Renames funds.total_cash to opening_balance and drops the CHECKs that held

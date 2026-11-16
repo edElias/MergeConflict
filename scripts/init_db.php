@@ -115,6 +115,7 @@ $pdo->exec('CREATE TABLE IF NOT EXISTS transactions (
     transaction_date TEXT NOT NULL,
     FOREIGN KEY (fund_id) REFERENCES funds(id)
 )');
+ensure_transaction_rules($pdo);
 
 
 
