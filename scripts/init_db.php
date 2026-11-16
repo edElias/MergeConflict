@@ -39,6 +39,8 @@ foreach ($columns as $column) {
     }
 }
 
+
+
 if (!$hasActiveColumn) {
     $pdo->exec(
         'ALTER TABLE funds
