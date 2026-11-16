@@ -4,7 +4,7 @@
 // database created before these changes keeps working without re-running init_db.
 // Bump SCHEMA_VERSION whenever a change is added below.
 
-const SCHEMA_VERSION = 5;
+const SCHEMA_VERSION = 6;
 
 function ensure_schema(PDO $pdo): void
 {
@@ -84,5 +84,63 @@ function ensure_schema(PDO $pdo): void
         ]);
     }
 
+    // FIN-01: Balances are calculated from transactions (see fund_balance.php), so the
+    // stored total_cash becomes opening_balance: the fund's cash before its recorded
+    // transactions. It is set so every fund's balance today is unchanged.
+    if (in_array('total_cash', $columns('funds'), true)) {
+        migrate_total_cash_to_opening_balance($pdo, in_array('transactions', $tables, true));
+    }
+
     $pdo->exec('PRAGMA user_version = ' . SCHEMA_VERSION);
+}
+
+// FIN-01: Renames funds.total_cash to opening_balance and drops the CHECKs that held
+// restricted and committed amounts to total_cash, which a calculated balance can't
+// enforce. SQLite can't drop a CHECK in place, so the table is rebuilt: create a copy
+// with the new definition, copy the rows, drop the old table, rename the copy
+// (https://www.sqlite.org/lang_altertable.html#otheralter). Foreign keys are off
+// while the old table is gone; ids are copied unchanged, so references still match.
+function migrate_total_cash_to_opening_balance(PDO $pdo, bool $hasTransactions): void
+{
+    $sql = $pdo->query("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'funds'")->fetchColumn();
+    $changes = [
+        'CREATE TABLE funds ('                                            => 'CREATE TABLE funds_new (',
+        'total_cash REAL NOT NULL DEFAULT 0,'                             => 'opening_balance REAL NOT NULL DEFAULT 0,',
+        'CHECK (total_cash >= 0),'                                        => '',
+        'CHECK (restricted_cash >= 0 AND restricted_cash <= total_cash),' => 'CHECK (restricted_cash >= 0),',
+        'CHECK (committed_funds >= 0 AND committed_funds <= total_cash)'  => 'CHECK (committed_funds >= 0)',
+    ];
+    foreach ($changes as $from => $to) {
+        if (substr_count($sql, $from) !== 1) {
+            throw new RuntimeException("FIN-01: Unexpected funds table definition (looking for \"$from\").");
+        }
+        $sql = str_replace($from, $to, $sql);
+    }
+
+    // Opening balance = old total_cash minus the transactions already counted in it.
+    $posted = $hasTransactions
+        ? 'COALESCE((SELECT SUM(t.amount) FROM transactions t WHERE t.fund_id = funds.id AND t.transaction_date <= :today), 0)'
+        : '0';
+    $columns = array_column($pdo->query('PRAGMA table_info(funds)')->fetchAll(PDO::FETCH_ASSOC), 'name');
+    $target = array_map(fn($c) => $c === 'total_cash' ? 'opening_balance' : $c, $columns);
+    $source = array_map(fn($c) => $c === 'total_cash' ? "total_cash - $posted" : $c, $columns);
+
+    $foreignKeys = (int) $pdo->query('PRAGMA foreign_keys')->fetchColumn();
+    $pdo->exec('PRAGMA foreign_keys = OFF');
+    try {
+        $pdo->beginTransaction();
+        $pdo->exec($sql);
+        $copy = $pdo->prepare('INSERT INTO funds_new (' . implode(', ', $target) . ') SELECT ' . implode(', ', $source) . ' FROM funds');
+        $copy->execute($hasTransactions ? ['today' => date('Y-m-d')] : []);
+        $pdo->exec('DROP TABLE funds');
+        $pdo->exec('ALTER TABLE funds_new RENAME TO funds');
+        $pdo->commit();
+    } catch (Throwable $e) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        throw $e;
+    } finally {
+        $pdo->exec('PRAGMA foreign_keys = ' . $foreignKeys);
+    }
 }

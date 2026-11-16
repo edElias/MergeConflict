@@ -37,7 +37,7 @@ try {
     echo '=== FUND-06 Acceptance Tests ===' . PHP_EOL;
 
     $id = (int) $pdo->query("SELECT id FROM funds WHERE name = 'Capital Projects Fund'")->fetchColumn();
-    $cashBefore = (float) $pdo->query('SELECT SUM(total_cash) FROM funds WHERE is_active = 1')->fetchColumn();
+    $cashBefore = (float) $pdo->query('SELECT SUM(opening_balance) FROM funds WHERE is_active = 1')->fetchColumn();
 
     // Give the fund history, so "without losing records" is a real comparison.
     $pdo->prepare("INSERT INTO transactions (fund_id, amount, description, transaction_date)
@@ -85,7 +85,7 @@ try {
     check($after['current_balance'] === $detailsBefore['current_balance']
         && $after['committed'] === $detailsBefore['committed'], 'Reactivation keeps the balances');
     check(
-        (float) $pdo->query('SELECT SUM(total_cash) FROM funds WHERE is_active = 1')->fetchColumn() === $cashBefore,
+        (float) $pdo->query('SELECT SUM(opening_balance) FROM funds WHERE is_active = 1')->fetchColumn() === $cashBefore,
         'Reactivated fund counts toward organization totals again'
     );
 

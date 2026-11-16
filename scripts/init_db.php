@@ -17,12 +17,11 @@ $stmt->execute(['admin', password_hash('password123', PASSWORD_DEFAULT), 'Admin 
  $pdo->exec('CREATE TABLE IF NOT EXISTS funds (
      id INTEGER PRIMARY KEY AUTOINCREMENT,
      name TEXT NOT NULL UNIQUE,
-     total_cash REAL NOT NULL DEFAULT 0,
+     opening_balance REAL NOT NULL DEFAULT 0,
      restricted_cash REAL NOT NULL DEFAULT 0,
      committed_funds REAL NOT NULL DEFAULT 0,
-     CHECK (total_cash >= 0),
-     CHECK (restricted_cash >= 0 AND restricted_cash <= total_cash),
-     CHECK (committed_funds >= 0 AND committed_funds <= total_cash)
+     CHECK (restricted_cash >= 0),
+     CHECK (committed_funds >= 0)
  )');
 
 
@@ -60,7 +59,7 @@ if (!$hasActiveColumn) {
 
  $stmt = $pdo->prepare(
      'INSERT OR IGNORE INTO funds
-      (name, total_cash, restricted_cash, committed_funds)
+      (name, opening_balance, restricted_cash, committed_funds)
       VALUES (?, ?, ?, ?)'
  );
 
@@ -80,7 +79,7 @@ $pdo->exec("UPDATE users
 // Sample custom funds: one active (shown on the Funds page), one closed (hidden).
 $stmt = $pdo->prepare(
     'INSERT OR IGNORE INTO funds
-     (name, total_cash, restricted_cash, committed_funds, fund_type, is_active)
+     (name, opening_balance, restricted_cash, committed_funds, fund_type, is_active)
      VALUES (?, ?, ?, ?, ?, ?)'
 );
 $stmt->execute(['Downtown Parks Grant', 250000, 250000, 120000, 'custom', 1]);
