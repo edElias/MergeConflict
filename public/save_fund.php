@@ -59,7 +59,7 @@ try {
         fund_category,
         restriction,
         description,
-        total_cash,
+        opening_balance,
         restricted_cash,
         committed_funds,
         is_active

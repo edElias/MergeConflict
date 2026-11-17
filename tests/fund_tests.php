@@ -90,9 +90,9 @@ try {
     $before = getCashSummary($pdo);
 
     $stmt = $pdo->prepare(
-        "SELECT total_cash FROM funds WHERE name = ?"
+        'SELECT ' . fund_balance_sql('f') . ' FROM funds f WHERE f.name = :name'
     );
-    $stmt->execute(['General Fund']);
+    $stmt->execute(['name' => 'General Fund', 'as_of' => balance_date(null)]);
     $generalFundCash = (float)$stmt->fetchColumn();
 
     $pdo->exec(

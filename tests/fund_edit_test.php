@@ -65,7 +65,7 @@ try {
     }
 
     // Editing does not alter transactions or balances.
-    foreach (['total_cash', 'restricted_cash', 'committed_funds', 'is_active'] as $column) {
+    foreach (['opening_balance', 'restricted_cash', 'committed_funds', 'is_active'] as $column) {
         check($after[$column] === $before[$column], "$column is unchanged");
     }
     check(fund_records($pdo, $id) === $recordsBefore, 'Transactions, commitments, and inflows are unchanged');

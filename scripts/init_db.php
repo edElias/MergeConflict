@@ -17,12 +17,11 @@ $stmt->execute(['admin', password_hash('password123', PASSWORD_DEFAULT), 'Admin 
  $pdo->exec('CREATE TABLE IF NOT EXISTS funds (
      id INTEGER PRIMARY KEY AUTOINCREMENT,
      name TEXT NOT NULL UNIQUE,
-     total_cash REAL NOT NULL DEFAULT 0,
+     opening_balance REAL NOT NULL DEFAULT 0,
      restricted_cash REAL NOT NULL DEFAULT 0,
      committed_funds REAL NOT NULL DEFAULT 0,
-     CHECK (total_cash >= 0),
-     CHECK (restricted_cash >= 0 AND restricted_cash <= total_cash),
-     CHECK (committed_funds >= 0 AND committed_funds <= total_cash)
+     CHECK (restricted_cash >= 0),
+     CHECK (committed_funds >= 0)
  )');
 
 
@@ -60,7 +59,7 @@ if (!$hasActiveColumn) {
 
  $stmt = $pdo->prepare(
      'INSERT OR IGNORE INTO funds
-      (name, total_cash, restricted_cash, committed_funds)
+      (name, opening_balance, restricted_cash, committed_funds)
       VALUES (?, ?, ?, ?)'
  );
 
@@ -80,7 +79,7 @@ $pdo->exec("UPDATE users
 // Sample custom funds: one active (shown on the Funds page), one closed (hidden).
 $stmt = $pdo->prepare(
     'INSERT OR IGNORE INTO funds
-     (name, total_cash, restricted_cash, committed_funds, fund_type, is_active)
+     (name, opening_balance, restricted_cash, committed_funds, fund_type, is_active)
      VALUES (?, ?, ?, ?, ?, ?)'
 );
 $stmt->execute(['Downtown Parks Grant', 250000, 250000, 120000, 'custom', 1]);
@@ -116,18 +115,21 @@ $pdo->exec('CREATE TABLE IF NOT EXISTS transactions (
     transaction_date TEXT NOT NULL,
     FOREIGN KEY (fund_id) REFERENCES funds(id)
 )');
+ensure_transaction_rules($pdo);
 
 
 
  // FUND-02: Commitments associated with funds.
-$pdo->exec('CREATE TABLE IF NOT EXISTS commitments (
+$pdo->exec("CREATE TABLE IF NOT EXISTS commitments (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     fund_id INTEGER NOT NULL,
     amount REAL NOT NULL CHECK (amount >= 0),
     description TEXT,
     commitment_date TEXT NOT NULL,
+    name TEXT NOT NULL DEFAULT '',
+    status TEXT NOT NULL DEFAULT 'Planned',
     FOREIGN KEY (fund_id) REFERENCES funds(id)
-)');
+)");
 
 
  // FUND-02: Expected inflows associated with funds.

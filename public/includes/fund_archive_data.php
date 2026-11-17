@@ -40,7 +40,7 @@ function getFundRecords(PDO $pdo, int $id): array
                CASE WHEN amount < 0 THEN 'Payment' ELSE 'Receipt' END AS type, amount
         FROM transactions WHERE fund_id = :id
         UNION ALL
-        SELECT commitment_date, description, 'Commitment', amount
+        SELECT commitment_date, CASE WHEN name != '' THEN name ELSE description END, 'Commitment', amount
         FROM commitments WHERE fund_id = :id
         UNION ALL
         SELECT expected_date, description, 'Expected inflow', amount
