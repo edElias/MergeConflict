@@ -4,7 +4,7 @@
 // database created before these changes keeps working without re-running init_db.
 // Bump SCHEMA_VERSION whenever a change is added below.
 
-const SCHEMA_VERSION = 4;
+const SCHEMA_VERSION = 5;
 
 function ensure_schema(PDO $pdo): void
 {
@@ -74,6 +74,26 @@ function ensure_schema(PDO $pdo): void
     // FUND-06: When a fund was archived. Empty for active funds, and for funds
     // archived before this column existed.
     $addColumns('funds', ['archived_at' => 'TEXT']);
+
+    // MER-38 (Plan-02): Expected inflow details
+    // Create the table if it does not exist yet.
+    $pdo->exec("CREATE TABLE IF NOT EXISTS expected_inflows (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        fund_id INTEGER NOT NULL REFERENCES funds(id),
+        amount REAL NOT NULL CHECK (amount > 0),
+        description TEXT,
+        expected_date TEXT NOT NULL,
+        source TEXT NOT NULL DEFAULT '',
+        status TEXT NOT NULL DEFAULT 'Expected'
+    )");
+    
+    // Add missing fields to databases created before MER-38
+    $addColumns('expected_inflows', [
+        'source' => "TEXT NOT NULL DEFAULT '' ",
+        'status' => "TEXT NOT NULL DEFAULT 'Expected'"
+    ]);
+
+
 
     $pdo->exec('PRAGMA user_version = ' . SCHEMA_VERSION);
 }
