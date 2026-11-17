@@ -146,3 +146,18 @@ php tests/fund_reactivate_test.php
 `transactions.php`, `inflows.php`, `alerts.php`, and `forecast.php` follow the
 Figma layouts and are linked from the sidebar. They show no data yet, and their
 buttons and filters stay disabled until each page is connected.
+
+## Fund information (MER-34)
+
+`fund.php` shows a fund's balances plus its expected inflows and expected
+outflows (commitments) due in the next 30 days, and tabs for its transactions,
+commitments, and expected inflows. The queries are in
+`includes/fund_info_data.php`.
+
+Re-run `php scripts/init_db.php` after pulling to add sample records for the
+active funds. Their dates are relative to the day you run it, and each fund's
+commitments add up to its committed amount.
+
+```powershell
+php tests/fund_info_test.php
+```

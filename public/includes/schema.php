@@ -94,6 +94,25 @@ function ensure_schema(PDO $pdo): void
     if (in_array('transactions', $tables, true)) {
         ensure_transaction_rules($pdo);
     }
+    // MER-38 (Plan-02): Expected inflow details
+    // Create the table if it does not exist yet.
+    $pdo->exec("CREATE TABLE IF NOT EXISTS expected_inflows (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        fund_id INTEGER NOT NULL REFERENCES funds(id),
+        amount REAL NOT NULL CHECK (amount > 0),
+        description TEXT,
+        expected_date TEXT NOT NULL,
+        source TEXT NOT NULL DEFAULT '',
+        status TEXT NOT NULL DEFAULT 'Expected'
+    )");
+    
+    // Add missing fields to databases created before MER-38
+    $addColumns('expected_inflows', [
+        'source' => "TEXT NOT NULL DEFAULT '' ",
+        'status' => "TEXT NOT NULL DEFAULT 'Expected'"
+    ]);
+
+
 
     $pdo->exec('PRAGMA user_version = ' . SCHEMA_VERSION);
 }

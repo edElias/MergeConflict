@@ -70,8 +70,10 @@ try {
 
     // The user can open preserved archived-fund information.
     check(getFundDetails($pdo, $id) !== null, 'Archived fund information can be opened');
-    $records = getFundRecords($pdo, $id);
-    check(count($records) === 3, 'Transactions, commitments, and inflows are all preserved');
+    // Only the records added above (the fund may also have sample records).
+    $records = array_values(array_filter(getFundRecords($pdo, $id), fn($r) => str_starts_with($r['description'], 'Test ')));
+    check(count(getFundRecords($pdo, $id)) === count($recordsBefore) && count($records) === 3,
+        'Transactions, commitments, and inflows are all preserved');
     check(array_column($records, 'type') === ['Expected inflow', 'Commitment', 'Payment'], 'Records are typed, newest first');
 
     // The user can reactivate an archived fund, without losing records.
