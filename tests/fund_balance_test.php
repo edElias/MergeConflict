@@ -41,6 +41,8 @@ try {
 
     $id = (int) $pdo->query("SELECT id FROM funds WHERE name = 'Debt Service Fund'")->fetchColumn();
     $before = balance($pdo, $id);
+    // The fund may have real (sample) transactions, so compare against its own balance 30 days ago.
+    $before30 = balance($pdo, $id, $day(-30));
     $totalBefore = (float) getCashSummary($pdo)['total_cash'];
 
     // Current balance equals opening balance + posted inflows - posted outflows.
@@ -62,7 +64,7 @@ try {
     add_transaction($pdo, $id, 70, $day(0));
     check(balance($pdo, $id) === $before + 670, 'A transaction dated on the balance date counts');
     check(balance($pdo, $id, $day(-4)) === $before + 1000, 'An earlier balance date counts only earlier transactions');
-    check(balance($pdo, $id, $day(-30)) === $before, 'A balance date before every test transaction gives the starting balance');
+    check(balance($pdo, $id, $day(-30)) === $before30, 'A balance date before every test transaction gives the starting balance');
 
     // Commitments and expected inflows do not change cash balances.
     $cash = balance($pdo, $id);

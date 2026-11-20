@@ -44,26 +44,30 @@ function getFundTransactions(PDO $pdo, int $id, int $limit = 5): array
     return ['rows' => $rows, 'total' => (int) $count->fetchColumn()];
 }
 
-// All of the fund's commitments, soonest first.
+// All of the fund's commitments, soonest first. 'description' is the commitment's
+// name (PLAN-01), or its description for records saved before names existed.
 function getFundCommitments(PDO $pdo, int $id): array
 {
-    $stmt = $pdo->prepare('
-        SELECT commitment_date AS date, description, amount
+    $stmt = $pdo->prepare("
+        SELECT commitment_date AS date,
+               CASE WHEN name != '' THEN name ELSE description END AS description, amount
         FROM commitments WHERE fund_id = ?
         ORDER BY commitment_date, id
-    ');
+    ");
     $stmt->execute([$id]);
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
-// All of the fund's expected inflows, soonest first.
+// All of the fund's expected inflows, soonest first. 'description' is the inflow's
+// source (PLAN-02), or its description for records saved before sources existed.
 function getFundExpectedInflows(PDO $pdo, int $id): array
 {
-    $stmt = $pdo->prepare('
-        SELECT expected_date AS date, description, amount
+    $stmt = $pdo->prepare("
+        SELECT expected_date AS date,
+               CASE WHEN source != '' THEN source ELSE description END AS description, amount
         FROM expected_inflows WHERE fund_id = ?
         ORDER BY expected_date, id
-    ');
+    ");
     $stmt->execute([$id]);
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }

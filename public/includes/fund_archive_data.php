@@ -43,7 +43,7 @@ function getFundRecords(PDO $pdo, int $id): array
         SELECT commitment_date, CASE WHEN name != '' THEN name ELSE description END, 'Commitment', amount
         FROM commitments WHERE fund_id = :id
         UNION ALL
-        SELECT expected_date, description, 'Expected inflow', amount
+        SELECT expected_date, CASE WHEN source != '' THEN source ELSE description END, 'Expected inflow', amount
         FROM expected_inflows WHERE fund_id = :id
         ORDER BY date DESC
     ");
