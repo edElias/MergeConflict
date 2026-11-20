@@ -98,9 +98,7 @@ require __DIR__ . '/includes/nav.php';
     <?= htmlspecialchars($value) ?>
   <?php endif; ?>
 </div>
-          
-// MER-38 / PLAN-01: Display expected inflow totals and commitment
-// totals separately while preserving both features.
+          <?php // MER-38 / PLAN-01: Display expected inflow totals and commitment totals separately. ?>
           <div class="text-body-secondary small mt-1">Next 30 days</div>
         </div>
       </div>
@@ -159,7 +157,7 @@ require __DIR__ . '/includes/nav.php';
             <td><?= htmlspecialchars($inflow['source']) ?></td>
             <td><?= htmlspecialchars($inflow['fund_name']) ?></td>
             <td class="text-nowrap">
-              <?= htmlspecialchars($inflow['expected_date']) ?>
+              <?= htmlspecialchars(format_date($inflow['expected_date'])) ?>
             </td>
             <td>
               <span class="badge bg-primary-subtle text-primary">

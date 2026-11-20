@@ -163,17 +163,19 @@ if ((int) $hasHistory->fetchColumn() === 0) {
 // MER-34: Sample records for the active funds, dated relative to today so the
 // "next 30 days" totals have something to show. Each fund's commitments add up to
 // its committed_funds, and a fund only gets samples if it has no records of that kind.
+// Commitments and inflows get their title in name/source (PLAN-01, PLAN-02). Names avoid
+// month words, since the dates move with the day the script runs.
 $day = fn(int $offset) => date('Y-m-d', strtotime(($offset >= 0 ? '+' : '') . "$offset days"));
 
 $samples = [
     'General Fund' => [
         'transactions' => [
-            [-132400, 'Payroll – October', -6], [48250, 'Sales tax receipt', -10],
+            [-132400, 'Payroll', -6], [48250, 'Sales tax receipt', -10],
             [-6180, 'Utility payment', -12], [3900, 'Permit fees', -18],
             [-21760, 'Vendor payment', -25], [-2310, 'Office supplies', -40],
         ],
         'commitments' => [
-            [85000, 'Road salt contract', 12], [140000, 'Payroll – November', 21],
+            [85000, 'Road salt contract', 12], [140000, 'Upcoming payroll', 21],
             [35000, 'Fleet maintenance', 26], [340000, 'Building HVAC replacement', 70],
         ],
         'inflows' => [[120000, 'Property tax distribution', 14], [60000, 'State revenue sharing', 25]],
@@ -192,7 +194,7 @@ $samples = [
         'inflows' => [[75000, 'Bond proceeds draw', 20]],
     ],
     'Debt Service Fund' => [
-        'transactions' => [[-18750, 'Bond interest payment', -7]],
+        'transactions' => [[-18750, 'Bond interest payment', -45]],
         'commitments' => [[300000, 'Bond principal and interest', 19]],
         'inflows' => [[40000, 'Debt service property tax levy', 20]],
     ],
@@ -204,9 +206,10 @@ $samples = [
 ];
 
 $tables = [
-    'transactions' => ['transactions', 'transaction_date'],
-    'commitments'  => ['commitments', 'commitment_date'],
-    'inflows'      => ['expected_inflows', 'expected_date'],
+    // kind => [table, date column, title column]
+    'transactions' => ['transactions', 'transaction_date', 'description'],
+    'commitments'  => ['commitments', 'commitment_date', 'name'],
+    'inflows'      => ['expected_inflows', 'expected_date', 'source'],
 ];
 
 foreach ($samples as $name => $kinds) {
@@ -218,18 +221,23 @@ foreach ($samples as $name => $kinds) {
     }
 
     foreach ($kinds as $kind => $rows) {
-        [$table, $dateColumn] = $tables[$kind];
+        [$table, $dateColumn, $titleColumn] = $tables[$kind];
         $existing = $pdo->prepare("SELECT COUNT(*) FROM $table WHERE fund_id = ?");
         $existing->execute([$fundId]);
         if ((int) $existing->fetchColumn() > 0) {
             continue;
         }
 
-        $insert = $pdo->prepare("INSERT INTO $table (fund_id, amount, description, $dateColumn) VALUES (?, ?, ?, ?)");
-        foreach ($rows as [$amount, $description, $offset]) {
-            $insert->execute([$fundId, $amount, $description, $day($offset)]);
+        $insert = $pdo->prepare("INSERT INTO $table (fund_id, amount, $titleColumn, $dateColumn) VALUES (?, ?, ?, ?)");
+        foreach ($rows as [$amount, $title, $offset]) {
+            $insert->execute([$fundId, $amount, $title, $day($offset)]);
         }
     }
 }
+
+// Records saved before names/sources existed (including earlier MER-34 samples) kept
+// their title in description; copy it over so lists that show the name aren't blank.
+$pdo->exec("UPDATE commitments SET name = description WHERE name = '' AND COALESCE(description, '') != ''");
+$pdo->exec("UPDATE expected_inflows SET source = description WHERE source = '' AND COALESCE(description, '') != ''");
 
 echo "Done\n";

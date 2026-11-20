@@ -28,7 +28,7 @@ try {
     echo '=== FUND-01 Acceptance Tests ===' . PHP_EOL;
 
     // A fresh fund, so every total below comes only from the records added here.
-    $pdo->exec("INSERT INTO funds (name, total_cash, restricted_cash, committed_funds) VALUES ('Test Info Fund', 50000, 0, 12000)");
+    $pdo->exec("INSERT INTO funds (name, opening_balance, restricted_cash, committed_funds) VALUES ('Test Info Fund', 50000, 0, 12000)");
     $id = (int) $pdo->lastInsertId();
 
     $empty = getFundPlanningTotals($pdo, $id);
@@ -71,8 +71,19 @@ try {
     // Displayed information reflects the current stored data.
     $commit->execute([$id, 600, 'Added later', $day(5)]);
     check(getFundPlanningTotals($pdo, $id)['expected_outflows'] === 5600.0, 'A new commitment changes the totals right away');
-    $pdo->prepare('UPDATE funds SET total_cash = 61000 WHERE id = ?')->execute([$id]);
-    check((float) getFundDetails($pdo, $id)['current_balance'] === 61000.0, 'Balances read the stored values');
+    // FIN-01: the balance is the stored opening balance plus posted transactions (-400 above).
+    $pdo->prepare('UPDATE funds SET opening_balance = 61000 WHERE id = ?')->execute([$id]);
+    check((float) getFundDetails($pdo, $id)['current_balance'] === 60600.0, 'Balances read the stored values');
+
+    // Commitments and inflows saved through the forms show their name or source.
+    $pdo->prepare("INSERT INTO commitments (fund_id, amount, name, description, commitment_date) VALUES (?, 1, 'Named commitment', '', ?)")
+        ->execute([$id, $day(3)]);
+    $pdo->prepare("INSERT INTO expected_inflows (fund_id, amount, source, description, expected_date) VALUES (?, 1, 'Named source', 'Note', ?)")
+        ->execute([$id, $day(3)]);
+    check(in_array('Named commitment', array_column(getFundCommitments($pdo, $id), 'description'), true),
+        'A commitment shows its name');
+    check(in_array('Named source', array_column(getFundExpectedInflows($pdo, $id), 'description'), true),
+        'An expected inflow shows its source, not its note');
 
     // Another fund's records are never counted.
     $other = (int) $pdo->query("SELECT id FROM funds WHERE name = 'General Fund'")->fetchColumn();
