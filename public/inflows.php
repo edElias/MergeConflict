@@ -25,7 +25,6 @@ require_once __DIR__ . '/includes/db.php';
 require_once __DIR__ . '/includes/expected_inflow_data.php';
 
 
-// MER-38: Retrieve saved expected inflows.
 $stmt = $pdo->query(
     "SELECT e.id, e.source, e.amount,
             e.expected_date, e.status,
@@ -181,7 +180,6 @@ require __DIR__ . '/includes/nav.php';
           </tr>
         <?php endif; ?>
 
-        <?php endif; ?>
       </tbody>
 
     </table>

@@ -71,7 +71,7 @@ try {
         'custom',
         $type,
         strtolower($restriction),
-        $description !== '' ? $description : null
+        $description 
     ]);
 
 
@@ -80,15 +80,32 @@ try {
     exit;
 
 } catch (PDOException $e) {
-    // SQLite UNIQUE constraint violation.
-    if ($e->getCode() === '23000'
-        || str_contains($e->getMessage(), 'UNIQUE constraint failed')) {
+    // FUND-03: Handle duplicate fund names.
+    if (str_contains($e->getMessage(), 'UNIQUE constraint failed: funds.name')) {
+
+        // Check whether the existing fund is active or archived.
+        $stmt = $pdo->prepare(
+            'SELECT is_active FROM funds WHERE name = ?'
+        );
+        $stmt->execute([$name]);
+
+        $existingFund = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($existingFund && (int) $existingFund['is_active'] === 0) {
+            http_response_code(409);
+            exit(
+                'Error: A fund with this name already exists but is archived. ' .
+                'Please reactivate the existing fund or choose another name.'
+            );
+        }
+
         http_response_code(409);
-        exit('Error: A fund with this name already exists.');
+        exit('Error: An active fund with this name already exists.');
     }
 
-    // Do not expose internal database errors.
+    // Handle unexpected database errors.
     error_log($e->getMessage());
     http_response_code(500);
     exit('Unable to create fund. Please try again.');
 }
+
