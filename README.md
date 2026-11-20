@@ -161,3 +161,14 @@ commitments add up to its committed amount.
 ```powershell
 php tests/fund_info_test.php
 ```
+
+## Filter transactions (MER-54)
+
+`transactions.php` filters by fund (including archived funds), type, and a
+date range, and searches descriptions and categories. Filters combine and are
+kept in the URL; **Clear filters** returns to the full history. Invalid values
+are ignored with a message. The filter logic is in `includes/transaction_data.php`.
+
+```powershell
+php tests/transaction_filter_test.php
+```
