@@ -85,6 +85,21 @@ $stmt = $pdo->prepare(
 $stmt->execute(['Downtown Parks Grant', 250000, 250000, 120000, 'custom', 1]);
 $stmt->execute(['Riverfront Festival 2025', 0, 0, 0, 'custom', 0]);
 
+// FIN-02 (MER-49): Restricted cash now comes from each fund's restriction designation.
+// Sample classification: only the General Fund is unrestricted; the special-purpose
+// funds are restricted. Applied once, while all of them still have the default
+// 'unrestricted', so a designation changed on the Edit fund page is kept on later runs.
+$restrictedFunds = ['Special Revenue Fund', 'Capital Projects Fund', 'Debt Service Fund', 'Downtown Parks Grant'];
+$marks = implode(', ', array_fill(0, count($restrictedFunds), '?'));
+$stillDefault = $pdo->prepare("SELECT COUNT(*) FROM funds WHERE name IN ($marks) AND restriction = 'unrestricted'");
+$stillDefault->execute($restrictedFunds);
+$present = $pdo->prepare("SELECT COUNT(*) FROM funds WHERE name IN ($marks)");
+$present->execute($restrictedFunds);
+$count = (int) $present->fetchColumn();
+if ($count > 0 && (int) $stillDefault->fetchColumn() === $count) {
+    $pdo->prepare("UPDATE funds SET restriction = 'restricted' WHERE name IN ($marks)")->execute($restrictedFunds);
+}
+
 // MER-29: Projected 30-day balances — DUMMY VALUES until the ML forecast (MER-17)
 // is ready; the forecast should replace these rows and set source = 'ml'.
 $projections = [
