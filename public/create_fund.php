@@ -84,7 +84,7 @@ require __DIR__ . '/includes/db.php';
                     Create Fund
                 </button>
 
-                <a href="dashboard.php"
+                <a href="funds.php"
                    class="btn btn-secondary">
                     Cancel
                 </a>
