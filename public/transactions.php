@@ -1,6 +1,8 @@
 <?php
 require __DIR__ . '/includes/auth.php';
 // MER-16: Page shell from the Figma design. Export is not connected yet.
+// TRANS-01 (MER-53): Posted transactions, newest first, including archived funds' (labeled).
+// Values are read-only: no page edits them, and the database refuses changes (schema.php).
 // TRANS-07: Transactions can be added and are listed here, newest first.
 // TRANS-02 (MER-54): Search and filter by fund, type, and date range. The filters are a
 // GET form, so they combine, show in the URL, and "Clear filters" returns the full history.
@@ -111,7 +113,12 @@ require __DIR__ . '/includes/nav.php';
           <tr>
             <td class="text-nowrap"><?= htmlspecialchars(format_date($transaction['date'])) ?></td>
             <td><?= htmlspecialchars($transaction['description'] ?? '') ?></td>
-            <td><?= htmlspecialchars($transaction['fund_name']) ?></td>
+            <td>
+              <?= htmlspecialchars($transaction['fund_name']) ?>
+              <?php if (!(int) $transaction['fund_is_active']): ?>
+                <span class="badge text-bg-light border ms-1">Archived</span>
+              <?php endif; ?>
+            </td>
             <td><?= htmlspecialchars($transaction['category'] !== '' ? $transaction['category'] : '—') ?></td>
             <td><?= htmlspecialchars($transaction['type']) ?></td>
             <td class="text-end text-nowrap"><?= htmlspecialchars(format_currency((float) $transaction['amount'])) ?></td>

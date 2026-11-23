@@ -72,7 +72,8 @@ function create_transaction(PDO $pdo, array $input): int
     return (int) $pdo->lastInsertId();
 }
 
-// Every transaction, including those of archived funds, newest first.
+// Every transaction, including those of archived funds, newest first (TRANS-01).
+// fund_is_active is 0 for an archived fund's transactions.
 // TRANS-02: $filters (from transaction_filters()) narrows the list; filters combine.
 function getTransactions(PDO $pdo, array $filters = []): array
 {
@@ -103,7 +104,7 @@ function getTransactions(PDO $pdo, array $filters = []): array
     $stmt = $pdo->prepare("
         SELECT t.id, t.transaction_date AS date, t.description, t.category, t.amount,
                CASE WHEN t.amount < 0 THEN 'Outflow' ELSE 'Inflow' END AS type,
-               f.name AS fund_name
+               f.name AS fund_name, f.is_active AS fund_is_active
         FROM transactions t
         JOIN funds f ON f.id = t.fund_id
         " . ($where ? 'WHERE ' . implode(' AND ', $where) : '') . "

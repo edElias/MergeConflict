@@ -172,3 +172,14 @@ are ignored with a message. The filter logic is in `includes/transaction_data.ph
 ```powershell
 php tests/transaction_filter_test.php
 ```
+
+## Transaction history (MER-53)
+
+`transactions.php` lists every posted transaction, newest first, with its date,
+description, fund, category, type, and amount. Transactions of archived funds stay
+listed, labeled **Archived**. Posted values are read-only: no page edits them and
+the database refuses changes.
+
+```powershell
+php tests/transaction_history_test.php
+```
