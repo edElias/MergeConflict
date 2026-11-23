@@ -161,3 +161,25 @@ commitments add up to its committed amount.
 ```powershell
 php tests/fund_info_test.php
 ```
+
+## Filter transactions (MER-54)
+
+`transactions.php` filters by fund (including archived funds), type, and a
+date range, and searches descriptions and categories. Filters combine and are
+kept in the URL; **Clear filters** returns to the full history. Invalid values
+are ignored with a message. The filter logic is in `includes/transaction_data.php`.
+
+```powershell
+php tests/transaction_filter_test.php
+```
+
+## Transaction history (MER-53)
+
+`transactions.php` lists every posted transaction, newest first, with its date,
+description, fund, category, type, and amount. Transactions of archived funds stay
+listed, labeled **Archived**. Posted values are read-only: no page edits them and
+the database refuses changes.
+
+```powershell
+php tests/transaction_history_test.php
+```
