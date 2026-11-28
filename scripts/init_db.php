@@ -85,6 +85,21 @@ $stmt = $pdo->prepare(
 $stmt->execute(['Downtown Parks Grant', 250000, 250000, 120000, 'custom', 1]);
 $stmt->execute(['Riverfront Festival 2025', 0, 0, 0, 'custom', 0]);
 
+// FIN-02 (MER-49): Restricted cash now comes from each fund's restriction designation.
+// Sample classification: only the General Fund is unrestricted; the special-purpose
+// funds are restricted. Applied once, while all of them still have the default
+// 'unrestricted', so a designation changed on the Edit fund page is kept on later runs.
+$restrictedFunds = ['Special Revenue Fund', 'Capital Projects Fund', 'Debt Service Fund', 'Downtown Parks Grant'];
+$marks = implode(', ', array_fill(0, count($restrictedFunds), '?'));
+$stillDefault = $pdo->prepare("SELECT COUNT(*) FROM funds WHERE name IN ($marks) AND restriction = 'unrestricted'");
+$stillDefault->execute($restrictedFunds);
+$present = $pdo->prepare("SELECT COUNT(*) FROM funds WHERE name IN ($marks)");
+$present->execute($restrictedFunds);
+$count = (int) $present->fetchColumn();
+if ($count > 0 && (int) $stillDefault->fetchColumn() === $count) {
+    $pdo->prepare("UPDATE funds SET restriction = 'restricted' WHERE name IN ($marks)")->execute($restrictedFunds);
+}
+
 // MER-29: Projected 30-day balances — DUMMY VALUES until the ML forecast (MER-17)
 // is ready; the forecast should replace these rows and set source = 'ml'.
 $projections = [
@@ -154,10 +169,10 @@ $hasHistory->execute([$fundId]);
 
 if ((int) $hasHistory->fetchColumn() === 0) {
     $stmt = $pdo->prepare(
-        'INSERT INTO transactions (fund_id, amount, description, transaction_date) VALUES (?, ?, ?, ?)'
+        'INSERT INTO transactions (fund_id, amount, description, transaction_date, category) VALUES (?, ?, ?, ?, ?)'
     );
-    $stmt->execute([$fundId, 38400, 'Sponsorship receipts', '2025-08-29']);
-    $stmt->execute([$fundId, -38400, 'Festival vendor payments', '2025-09-12']);
+    $stmt->execute([$fundId, 38400, 'Sponsorship receipts', '2025-08-29', 'Sponsorships']);
+    $stmt->execute([$fundId, -38400, 'Festival vendor payments', '2025-09-12', 'Event services']);
 }
 
 // MER-34: Sample records for the active funds, dated relative to today so the
@@ -170,9 +185,9 @@ $day = fn(int $offset) => date('Y-m-d', strtotime(($offset >= 0 ? '+' : '') . "$
 $samples = [
     'General Fund' => [
         'transactions' => [
-            [-132400, 'Payroll', -6], [48250, 'Sales tax receipt', -10],
-            [-6180, 'Utility payment', -12], [3900, 'Permit fees', -18],
-            [-21760, 'Vendor payment', -25], [-2310, 'Office supplies', -40],
+            [-132400, 'Payroll', -6, 'Payroll'], [48250, 'Sales tax receipt', -10, 'Taxes'],
+            [-6180, 'Utility payment', -12, 'Utilities'], [3900, 'Permit fees', -18, 'Fees and permits'],
+            [-21760, 'Vendor payment', -25, 'Contracted services'], [-2310, 'Office supplies', -40, 'Supplies'],
         ],
         'commitments' => [
             [85000, 'Road salt contract', 12], [140000, 'Upcoming payroll', 21],
@@ -181,12 +196,12 @@ $samples = [
         'inflows' => [[120000, 'Property tax distribution', 14], [60000, 'State revenue sharing', 25]],
     ],
     'Special Revenue Fund' => [
-        'transactions' => [[31600, 'Motor fuel tax receipt', -17]],
+        'transactions' => [[31600, 'Motor fuel tax receipt', -17, 'Taxes']],
         'commitments' => [[150000, 'Street lighting upgrade', 18], [250000, 'Library programs', 90]],
         'inflows' => [[120000, 'Motor fuel tax distribution', 9], [80000, 'Hotel tax receipts', 23]],
     ],
     'Capital Projects Fund' => [
-        'transactions' => [[-74300, 'Road resurfacing invoice', -14]],
+        'transactions' => [[-74300, 'Road resurfacing invoice', -14, 'Capital improvements']],
         'commitments' => [
             [300000, 'Road resurfacing phase 2', 16], [45000, 'Bridge inspection', 28],
             [230000, 'Fire station design', 75],
@@ -194,12 +209,12 @@ $samples = [
         'inflows' => [[75000, 'Bond proceeds draw', 20]],
     ],
     'Debt Service Fund' => [
-        'transactions' => [[-18750, 'Bond interest payment', -45]],
+        'transactions' => [[-18750, 'Bond interest payment', -45, 'Debt service']],
         'commitments' => [[300000, 'Bond principal and interest', 19]],
         'inflows' => [[40000, 'Debt service property tax levy', 20]],
     ],
     'Downtown Parks Grant' => [
-        'transactions' => [[25000, 'Park grant draw', -11]],
+        'transactions' => [[25000, 'Park grant draw', -11, 'Grants']],
         'commitments' => [[60000, 'Trail contractor', 15], [60000, 'Playground equipment', 45]],
         'inflows' => [[20000, 'Park grant reimbursement', 27]],
     ],
@@ -228,9 +243,13 @@ foreach ($samples as $name => $kinds) {
             continue;
         }
 
-        $insert = $pdo->prepare("INSERT INTO $table (fund_id, amount, $titleColumn, $dateColumn) VALUES (?, ?, ?, ?)");
-        foreach ($rows as [$amount, $title, $offset]) {
-            $insert->execute([$fundId, $amount, $title, $day($offset)]);
+        // Transactions also get a category (TRANS-07); planning records don't have one.
+        $hasCategory = $kind === 'transactions';
+        $insert = $pdo->prepare("INSERT INTO $table (fund_id, amount, $titleColumn, $dateColumn"
+            . ($hasCategory ? ', category) VALUES (?, ?, ?, ?, ?)' : ') VALUES (?, ?, ?, ?)'));
+        foreach ($rows as $row) {
+            [$amount, $title, $offset] = $row;
+            $insert->execute(array_merge([$fundId, $amount, $title, $day($offset)], $hasCategory ? [$row[3]] : []));
         }
     }
 }

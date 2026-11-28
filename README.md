@@ -161,3 +161,20 @@ commitments add up to its committed amount.
 ```powershell
 php tests/fund_info_test.php
 ```
+
+## Shared financial source of truth (MER-49)
+
+The dashboard and fund pages read the same calculated balances (FIN-01).
+Restricted cash is the balance of funds whose restriction designation is
+**Restricted**; the rest is unrestricted, so the two always add up to total
+cash. The old hand-entered `funds.restricted_cash` value is no longer used.
+Committed amounts never change total cash.
+
+Re-run `php scripts/init_db.php` once after pulling: it marks the sample
+special-purpose funds (Special Revenue, Capital Projects, Debt Service,
+Downtown Parks Grant) as restricted. Change a fund's designation on its Edit
+page.
+
+```powershell
+php tests/financial_source_test.php
+```
